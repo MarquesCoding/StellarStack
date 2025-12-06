@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarContent,
@@ -40,16 +42,16 @@ const servers = [
 
 // Navigation items
 const navItems = [
-  { title: "Overview", icon: LayoutDashboardIcon, isActive: true },
-  { title: "Files", icon: FolderIcon },
-  { title: "Backups", icon: ArchiveIcon },
-  { title: "Schedules", icon: CalendarIcon },
-  { title: "Users", icon: UsersIcon },
-  { title: "Databases", icon: DatabaseIcon },
-  { title: "Network", icon: NetworkIcon },
-  { title: "Activity", icon: ActivityIcon },
-  { title: "Startup", icon: PlayIcon },
-  { title: "Settings", icon: SettingsIcon },
+  { title: "Overview", icon: LayoutDashboardIcon, href: "/" },
+  { title: "Files", icon: FolderIcon, href: "/files" },
+  { title: "Backups", icon: ArchiveIcon, href: "/backups" },
+  { title: "Schedules", icon: CalendarIcon, href: "/schedules" },
+  { title: "Users", icon: UsersIcon, href: "/users" },
+  { title: "Databases", icon: DatabaseIcon, href: "/databases" },
+  { title: "Network", icon: NetworkIcon, href: "/network" },
+  { title: "Activity", icon: ActivityIcon, href: "/activity" },
+  { title: "Startup", icon: PlayIcon, href: "/startup" },
+  { title: "Settings", icon: SettingsIcon, href: "/settings" },
 ];
 
 interface AppSidebarProps {
@@ -57,6 +59,7 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ isDark = true }: AppSidebarProps) {
+  const pathname = usePathname();
   const [selectedServer, setSelectedServer] = useState("A Minecraft Server");
   const [isServerDropdownOpen, setIsServerDropdownOpen] = useState(false);
 
@@ -147,22 +150,28 @@ export function AppSidebar({ isDark = true }: AppSidebarProps) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    isActive={item.isActive}
-                    className={cn(
-                      "transition-colors text-xs rounded-none",
-                      isDark
-                        ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 data-[active=true]:bg-zinc-800/80 data-[active=true]:text-zinc-100"
-                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/50 data-[active=true]:bg-zinc-200/80 data-[active=true]:text-zinc-900"
-                    )}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {navItems.map((item) => {
+                const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      className={cn(
+                        "transition-colors text-xs rounded-none",
+                        isDark
+                          ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 data-[active=true]:bg-zinc-800/80 data-[active=true]:text-zinc-100"
+                          : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/50 data-[active=true]:bg-zinc-200/80 data-[active=true]:text-zinc-900"
+                      )}
+                    >
+                      <Link href={item.href}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
