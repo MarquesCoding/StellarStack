@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -34,6 +34,19 @@ import { UsageCard, UsageCardContent, UsageCardTitle } from "@workspace/ui/compo
 import { Sparkline } from "@workspace/ui/components/shared/Sparkline";
 import { SidebarTrigger } from "@workspace/ui/components/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  FadeIn,
+  AnimatedNumber,
+  PulsingDot,
+  ProgressRing,
+  GlowCard,
+  NoiseOverlay,
+  FloatingDots,
+  GradientText,
+  SkeletonCard,
+  Skeleton,
+  DropZone,
+} from "@workspace/ui/components/shared/Animations";
 import {
   BsFolder,
   BsFileEarmark,
@@ -144,20 +157,55 @@ function FileIcon({ file, className }: { file: FileItem; className?: string }) {
   }
 }
 
+// Animated button component with micro-interactions
+function AnimatedButton({
+  children,
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<typeof Button> & { variant?: "default" | "outline" | "destructive" }) {
+  return (
+    <Button
+      variant={variant === "destructive" ? "outline" : variant}
+      className={cn(
+        "transition-all duration-200 active:scale-95 hover:scale-[1.02]",
+        variant === "destructive" && "text-red-400 border-red-800 hover:bg-red-900/20",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
+
 export default function FilesPage() {
-  const isDark = true; // TODO: Get from theme context
+  const isDark = true;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPath] = useState("/");
+  const [isLoading, setIsLoading] = useState(true);
   const diskHistory = useMemo(() => generateDiskHistory(), []);
 
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Disk stats
-  const diskUsed = 45.2; // GB
-  const diskTotal = 100; // GB
+  const diskUsed = 45.2;
+  const diskTotal = 100;
   const diskPercentage = Math.round((diskUsed / diskTotal) * 100);
+
+  // Handle file drop
+  const handleFileDrop = (files: FileList) => {
+    console.log("Files dropped:", Array.from(files).map((f) => f.name));
+    // TODO: Implement upload
+  };
 
   // Table columns
   const columns: ColumnDef<FileItem>[] = useMemo(
@@ -230,7 +278,7 @@ export default function FilesPage() {
           );
         },
         cell: ({ row }) => (
-          <span className="text-zinc-400">{formatSize(row.original.size)}</span>
+          <span className="text-zinc-400 tabular-nums">{formatSize(row.original.size)}</span>
         ),
       },
       {
@@ -260,7 +308,7 @@ export default function FilesPage() {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1 hover:bg-zinc-800 rounded transition-colors">
+                <button className="p-1 hover:bg-zinc-800 rounded transition-all hover:scale-110 active:scale-95">
                   <BsThreeDotsVertical className="w-4 h-4 text-zinc-400" />
                 </button>
               </DropdownMenuTrigger>
@@ -338,347 +386,439 @@ export default function FilesPage() {
 
   const selectedCount = Object.keys(rowSelection).length;
 
-  return (
-    <div className={cn(
-      "min-h-svh transition-colors",
-      isDark ? "bg-[#0b0b0a]" : "bg-[#f5f5f4]"
-    )}>
-      {/* Background pattern */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.03)_1px,_transparent_1px)] bg-[length:24px_24px] pointer-events-none" />
-
-      <div className="relative p-8">
-        {/* Header */}
-        <div className="max-w-7xl mx-auto mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className={cn(
-              "transition-colors",
-              isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
-            )} />
-            <div>
-              <h1 className={cn(
-                "text-2xl font-semibold",
-                isDark ? "text-zinc-100" : "text-zinc-900"
-              )}>
-                File Manager
-              </h1>
-              <p className={cn(
-                "text-sm",
-                isDark ? "text-zinc-500" : "text-zinc-600"
-              )}>
-                {currentPath}
-              </p>
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className={cn("min-h-svh", isDark ? "bg-[#0b0b0a]" : "bg-[#f5f5f4]")}>
+        <FloatingDots isDark={isDark} count={15} />
+        <NoiseOverlay opacity={0.02} />
+        <div className="relative p-8">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 mt-16">
+            <div className="lg:col-span-3 space-y-4">
+              <SkeletonCard isDark={isDark} className="h-16" />
+              <SkeletonCard isDark={isDark} variant="chart" className="h-[500px]" />
+            </div>
+            <div className="space-y-4">
+              <SkeletonCard isDark={isDark} variant="stat" />
+              <SkeletonCard isDark={isDark} variant="stat" />
+              <SkeletonCard isDark={isDark} variant="stat" />
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Main Grid Layout */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Column - File Table */}
-          <div className="lg:col-span-3 space-y-4">
-            {/* Action Bar */}
-            <UsageCard isDark={isDark} className="p-4">
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Search */}
-                <div className="relative flex-1 min-w-[200px]">
-                  <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    placeholder="Search files..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={cn(
-                      "w-full pl-10 pr-4 py-2 text-sm rounded border outline-none transition-colors",
-                      isDark
-                        ? "bg-zinc-900 border-zinc-700 text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500"
-                        : "bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-400 focus:border-zinc-500"
-                    )}
-                  />
-                </div>
+  return (
+    <DropZone onDrop={handleFileDrop} isDark={isDark}>
+      <div className={cn(
+        "min-h-svh transition-colors",
+        isDark ? "bg-[#0b0b0a]" : "bg-[#f5f5f4]"
+      )}>
+        {/* Ambient effects */}
+        <FloatingDots isDark={isDark} count={15} />
+        <NoiseOverlay opacity={0.02} />
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "gap-2",
-                      isDark ? "border-zinc-700 text-zinc-300 hover:bg-zinc-800" : ""
-                    )}
-                  >
-                    <BsUpload className="w-4 h-4" />
-                    Upload
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "gap-2",
-                      isDark ? "border-zinc-700 text-zinc-300 hover:bg-zinc-800" : ""
-                    )}
-                  >
-                    <BsFolderPlus className="w-4 h-4" />
-                    New Folder
-                  </Button>
-                  {selectedCount > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn(
-                        "gap-2 text-red-400 border-red-800 hover:bg-red-900/20",
-                      )}
-                    >
-                      <BsTrash className="w-4 h-4" />
-                      Delete ({selectedCount})
-                    </Button>
-                  )}
+        <div className="relative p-8">
+          {/* Header */}
+          <FadeIn delay={0} className="max-w-7xl mx-auto mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className={cn(
+                  "transition-all hover:scale-110 active:scale-95",
+                  isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
+                )} />
+                <div>
+                  <h1 className={cn(
+                    "text-2xl font-semibold",
+                    isDark ? "text-zinc-100" : "text-zinc-900"
+                  )}>
+                    <GradientText animated>File Manager</GradientText>
+                  </h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <PulsingDot status="online" size="sm" />
+                    <p className={cn(
+                      "text-sm",
+                      isDark ? "text-zinc-500" : "text-zinc-600"
+                    )}>
+                      {currentPath}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </UsageCard>
+            </div>
+          </FadeIn>
 
-            {/* File Table */}
-            <UsageCard isDark={isDark} className="overflow-hidden">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className={cn(
-                        "border-b",
-                        isDark ? "border-zinc-800 hover:bg-transparent" : "border-zinc-200"
-                      )}
-                    >
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
+          {/* Main Grid Layout */}
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Left Column - File Table */}
+            <div className="lg:col-span-3 space-y-4">
+              {/* Action Bar */}
+              <FadeIn delay={100}>
+                <GlowCard isDark={isDark} glowColor="rgba(59, 130, 246, 0.3)">
+                  <UsageCard isDark={isDark} className="p-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      {/* Search */}
+                      <div className="relative flex-1 min-w-[200px] group">
+                        <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 transition-colors group-focus-within:text-blue-400" />
+                        <input
+                          type="text"
+                          placeholder="Search files..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
                           className={cn(
-                            "text-xs uppercase tracking-wider font-medium",
-                            isDark ? "text-zinc-500" : "text-zinc-600"
+                            "w-full pl-10 pr-4 py-2 text-sm rounded border outline-none transition-all",
+                            isDark
+                              ? "bg-zinc-900 border-zinc-700 text-zinc-200 placeholder:text-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                              : "bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-400 focus:border-blue-500"
+                          )}
+                        />
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        <AnimatedButton
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "gap-2",
+                            isDark ? "border-zinc-700 text-zinc-300 hover:bg-zinc-800" : ""
                           )}
                         >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                        className={cn(
-                          "border-b cursor-pointer transition-colors",
-                          isDark
-                            ? "border-zinc-800/50 hover:bg-zinc-800/50 data-[state=selected]:bg-zinc-800"
-                            : "border-zinc-200 hover:bg-zinc-100 data-[state=selected]:bg-zinc-200"
+                          <BsUpload className="w-4 h-4" />
+                          Upload
+                        </AnimatedButton>
+                        <AnimatedButton
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "gap-2",
+                            isDark ? "border-zinc-700 text-zinc-300 hover:bg-zinc-800" : ""
+                          )}
+                        >
+                          <BsFolderPlus className="w-4 h-4" />
+                          New Folder
+                        </AnimatedButton>
+                        {selectedCount > 0 && (
+                          <FadeIn direction="right">
+                            <AnimatedButton
+                              variant="destructive"
+                              size="sm"
+                              className="gap-2"
+                            >
+                              <BsTrash className="w-4 h-4" />
+                              Delete ({selectedCount})
+                            </AnimatedButton>
+                          </FadeIn>
                         )}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
+                      </div>
+                    </div>
+                  </UsageCard>
+                </GlowCard>
+              </FadeIn>
+
+              {/* File Table */}
+              <FadeIn delay={200}>
+                <GlowCard isDark={isDark} glowColor="rgba(139, 92, 246, 0.2)">
+                  <UsageCard isDark={isDark} className="overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                          <TableRow
+                            key={headerGroup.id}
+                            className={cn(
+                              "border-b",
+                              isDark ? "border-zinc-800 hover:bg-transparent" : "border-zinc-200"
                             )}
-                          </TableCell>
+                          >
+                            {headerGroup.headers.map((header) => (
+                              <TableHead
+                                key={header.id}
+                                className={cn(
+                                  "text-xs uppercase tracking-wider font-medium",
+                                  isDark ? "text-zinc-500" : "text-zinc-600"
+                                )}
+                              >
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            ))}
+                          </TableRow>
                         ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center text-zinc-500"
+                      </TableHeader>
+                      <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                          table.getRowModel().rows.map((row, index) => (
+                            <TableRow
+                              key={row.id}
+                              data-state={row.getIsSelected() && "selected"}
+                              className={cn(
+                                "border-b cursor-pointer transition-all",
+                                isDark
+                                  ? "border-zinc-800/50 hover:bg-zinc-800/50 data-[state=selected]:bg-zinc-800"
+                                  : "border-zinc-200 hover:bg-zinc-100 data-[state=selected]:bg-zinc-200",
+                                "animate-fade-in-up"
+                              )}
+                              style={{
+                                animationDelay: `${index * 30}ms`,
+                                animationFillMode: "backwards",
+                              }}
+                            >
+                              {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={columns.length}
+                              className="h-24 text-center text-zinc-500"
+                            >
+                              No files found.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+
+                    {/* Pagination */}
+                    <div className={cn(
+                      "flex items-center justify-between px-4 py-3 border-t",
+                      isDark ? "border-zinc-800" : "border-zinc-200"
+                    )}>
+                      <div className={cn(
+                        "text-sm tabular-nums",
+                        isDark ? "text-zinc-500" : "text-zinc-600"
+                      )}>
+                        {selectedCount > 0
+                          ? `${selectedCount} of ${table.getFilteredRowModel().rows.length} selected`
+                          : `${table.getFilteredRowModel().rows.length} items`}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <AnimatedButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => table.previousPage()}
+                          disabled={!table.getCanPreviousPage()}
+                          className={cn(
+                            "p-2",
+                            isDark ? "border-zinc-700 disabled:opacity-30" : ""
+                          )}
+                        >
+                          <BsChevronLeft className="w-4 h-4" />
+                        </AnimatedButton>
+                        <span className={cn(
+                          "text-sm tabular-nums",
+                          isDark ? "text-zinc-400" : "text-zinc-600"
+                        )}>
+                          Page {table.getState().pagination.pageIndex + 1} of{" "}
+                          {table.getPageCount()}
+                        </span>
+                        <AnimatedButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => table.nextPage()}
+                          disabled={!table.getCanNextPage()}
+                          className={cn(
+                            "p-2",
+                            isDark ? "border-zinc-700 disabled:opacity-30" : ""
+                          )}
+                        >
+                          <BsChevronRight className="w-4 h-4" />
+                        </AnimatedButton>
+                      </div>
+                    </div>
+                  </UsageCard>
+                </GlowCard>
+              </FadeIn>
+            </div>
+
+            {/* Right Column - Disk Stats */}
+            <div className="space-y-4">
+              {/* Disk Usage with Progress Ring */}
+              <FadeIn delay={300}>
+                <GlowCard isDark={isDark} glowColor="rgba(34, 197, 94, 0.2)">
+                  <UsageCard isDark={isDark} className="p-6">
+                    <UsageCardTitle isDark={isDark} className="text-xs mb-4 opacity-80">
+                      DISK USAGE
+                    </UsageCardTitle>
+                    <UsageCardContent className="flex flex-col items-center">
+                      <ProgressRing
+                        percentage={diskPercentage}
+                        size={140}
+                        strokeWidth={10}
+                        animated
                       >
-                        No files found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                        <div className="text-center">
+                          <AnimatedNumber
+                            value={diskPercentage}
+                            suffix="%"
+                            className={cn(
+                              "text-3xl font-semibold",
+                              isDark ? "text-zinc-100" : "text-zinc-800"
+                            )}
+                          />
+                        </div>
+                      </ProgressRing>
 
-              {/* Pagination */}
-              <div className={cn(
-                "flex items-center justify-between px-4 py-3 border-t",
-                isDark ? "border-zinc-800" : "border-zinc-200"
-              )}>
-                <div className={cn(
-                  "text-sm",
-                  isDark ? "text-zinc-500" : "text-zinc-600"
-                )}>
-                  {selectedCount > 0
-                    ? `${selectedCount} of ${table.getFilteredRowModel().rows.length} selected`
-                    : `${table.getFilteredRowModel().rows.length} items`}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                    className={cn(
-                      "p-2",
-                      isDark ? "border-zinc-700 disabled:opacity-30" : ""
-                    )}
-                  >
-                    <BsChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <span className={cn(
-                    "text-sm",
-                    isDark ? "text-zinc-400" : "text-zinc-600"
-                  )}>
-                    Page {table.getState().pagination.pageIndex + 1} of{" "}
-                    {table.getPageCount()}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                    className={cn(
-                      "p-2",
-                      isDark ? "border-zinc-700 disabled:opacity-30" : ""
-                    )}
-                  >
-                    <BsChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </UsageCard>
+                      <div className={cn(
+                        "text-sm mt-4 text-center tabular-nums",
+                        isDark ? "text-zinc-400" : "text-zinc-600"
+                      )}>
+                        <AnimatedNumber value={diskUsed} decimals={1} /> GB / {diskTotal} GB
+                      </div>
+
+                      {/* History graph */}
+                      <div className="w-full mt-4">
+                        <Sparkline
+                          data={diskHistory}
+                          color={diskPercentage > 80 ? "#ef4444" : diskPercentage > 60 ? "#f59e0b" : "#22c55e"}
+                          height={50}
+                          isDark={isDark}
+                        />
+                      </div>
+                    </UsageCardContent>
+                  </UsageCard>
+                </GlowCard>
+              </FadeIn>
+
+              {/* Storage Breakdown */}
+              <FadeIn delay={400}>
+                <GlowCard isDark={isDark} glowColor="rgba(168, 85, 247, 0.2)">
+                  <UsageCard isDark={isDark} className="p-6">
+                    <UsageCardTitle isDark={isDark} className="text-xs mb-4 opacity-80">
+                      STORAGE BREAKDOWN
+                    </UsageCardTitle>
+                    <UsageCardContent className="space-y-3">
+                      <StorageItem label="World Data" size={28.4} percentage={63} isDark={isDark} color="bg-blue-500" delay={450} />
+                      <StorageItem label="Backups" size={12.1} percentage={27} isDark={isDark} color="bg-purple-500" delay={500} />
+                      <StorageItem label="Plugins" size={3.2} percentage={7} isDark={isDark} color="bg-amber-500" delay={550} />
+                      <StorageItem label="Logs" size={1.5} percentage={3} isDark={isDark} color="bg-zinc-500" delay={600} />
+                    </UsageCardContent>
+                  </UsageCard>
+                </GlowCard>
+              </FadeIn>
+
+              {/* Quick Stats */}
+              <FadeIn delay={500}>
+                <GlowCard isDark={isDark} glowColor="rgba(59, 130, 246, 0.2)">
+                  <UsageCard isDark={isDark} className="p-6">
+                    <UsageCardTitle isDark={isDark} className="text-xs mb-4 opacity-80">
+                      QUICK STATS
+                    </UsageCardTitle>
+                    <UsageCardContent className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Total Files</span>
+                        <AnimatedNumber
+                          value={1247}
+                          className={isDark ? "text-zinc-200" : "text-zinc-800"}
+                        />
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Total Folders</span>
+                        <AnimatedNumber
+                          value={89}
+                          className={isDark ? "text-zinc-200" : "text-zinc-800"}
+                        />
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Largest File</span>
+                        <span className={isDark ? "text-zinc-200" : "text-zinc-800"}>backup.zip</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Status</span>
+                        <div className="flex items-center gap-2">
+                          <PulsingDot status="online" size="sm" />
+                          <span className="text-green-400 text-sm">Synced</span>
+                        </div>
+                      </div>
+                    </UsageCardContent>
+                  </UsageCard>
+                </GlowCard>
+              </FadeIn>
+            </div>
           </div>
 
-          {/* Right Column - Disk Stats */}
-          <div className="space-y-4">
-            {/* Disk Usage */}
-            <UsageCard isDark={isDark} className="p-6">
-              <UsageCardTitle isDark={isDark} className="text-xs mb-4 opacity-80">
-                DISK USAGE
-              </UsageCardTitle>
-              <UsageCardContent>
-                <div className={cn(
-                  "text-4xl font-mono",
-                  isDark ? "text-zinc-100" : "text-zinc-800"
-                )}>
-                  {diskPercentage}%
-                </div>
-                <div className={cn(
-                  "text-sm mt-2",
-                  isDark ? "text-zinc-400" : "text-zinc-600"
-                )}>
-                  {diskUsed} GB / {diskTotal} GB
-                </div>
-
-                {/* Progress bar */}
-                <div className={cn(
-                  "mt-4 h-2 rounded-full overflow-hidden",
-                  isDark ? "bg-zinc-800" : "bg-zinc-200"
-                )}>
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-500",
-                      diskPercentage > 80 ? "bg-red-500" :
-                      diskPercentage > 60 ? "bg-amber-500" : "bg-green-500"
-                    )}
-                    style={{ width: `${diskPercentage}%` }}
-                  />
-                </div>
-
-                {/* History graph */}
-                <div className="mt-4">
-                  <Sparkline
-                    data={diskHistory}
-                    color={diskPercentage > 80 ? "#ef4444" : diskPercentage > 60 ? "#f59e0b" : "#22c55e"}
-                    height={60}
-                    isDark={isDark}
-                  />
-                </div>
-              </UsageCardContent>
-            </UsageCard>
-
-            {/* Storage Breakdown */}
-            <UsageCard isDark={isDark} className="p-6">
-              <UsageCardTitle isDark={isDark} className="text-xs mb-4 opacity-80">
-                STORAGE BREAKDOWN
-              </UsageCardTitle>
-              <UsageCardContent className="space-y-3">
-                <StorageItem label="World Data" size="28.4 GB" percentage={63} isDark={isDark} color="bg-blue-500" />
-                <StorageItem label="Backups" size="12.1 GB" percentage={27} isDark={isDark} color="bg-purple-500" />
-                <StorageItem label="Plugins" size="3.2 GB" percentage={7} isDark={isDark} color="bg-amber-500" />
-                <StorageItem label="Logs" size="1.5 GB" percentage={3} isDark={isDark} color="bg-zinc-500" />
-              </UsageCardContent>
-            </UsageCard>
-
-            {/* Quick Stats */}
-            <UsageCard isDark={isDark} className="p-6">
-              <UsageCardTitle isDark={isDark} className="text-xs mb-4 opacity-80">
-                QUICK STATS
-              </UsageCardTitle>
-              <UsageCardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Total Files</span>
-                  <span className={isDark ? "text-zinc-200" : "text-zinc-800"}>1,247</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Total Folders</span>
-                  <span className={isDark ? "text-zinc-200" : "text-zinc-800"}>89</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Largest File</span>
-                  <span className={isDark ? "text-zinc-200" : "text-zinc-800"}>backup.zip (156 MB)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className={isDark ? "text-zinc-500" : "text-zinc-600"}>Last Modified</span>
-                  <span className={isDark ? "text-zinc-200" : "text-zinc-800"}>2 min ago</span>
-                </div>
-              </UsageCardContent>
-            </UsageCard>
-          </div>
+          {/* Footer */}
+          <FadeIn delay={600}>
+            <footer className={cn(
+              "mt-12 pb-4 text-center text-sm uppercase transition-colors",
+              isDark ? "text-zinc-500" : "text-zinc-600"
+            )}>
+              &copy; {new Date().getFullYear()} StellarStack
+            </footer>
+          </FadeIn>
         </div>
 
-        {/* Footer */}
-        <footer className={cn(
-          "mt-12 pb-4 text-center text-sm uppercase transition-colors",
-          isDark ? "text-zinc-500" : "text-zinc-600"
-        )}>
-          &copy; {new Date().getFullYear()} StellarStack
-        </footer>
+        {/* CSS for staggered row animation */}
+        <style jsx global>{`
+          @keyframes fade-in-up {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          .animate-fade-in-up {
+            animation: fade-in-up 0.3s ease-out;
+          }
+        `}</style>
       </div>
-    </div>
+    </DropZone>
   );
 }
 
-// Storage breakdown item component
+// Storage breakdown item component with animations
 function StorageItem({
   label,
   size,
   percentage,
   isDark,
   color,
+  delay = 0,
 }: {
   label: string;
-  size: string;
+  size: number;
   percentage: number;
   isDark: boolean;
   color: string;
+  delay?: number;
 }) {
+  const [animatedWidth, setAnimatedWidth] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimatedWidth(percentage), delay);
+    return () => clearTimeout(timer);
+  }, [percentage, delay]);
+
   return (
     <div>
       <div className="flex justify-between text-sm mb-1">
         <span className={isDark ? "text-zinc-400" : "text-zinc-600"}>{label}</span>
-        <span className={isDark ? "text-zinc-300" : "text-zinc-700"}>{size}</span>
+        <span className={cn("tabular-nums", isDark ? "text-zinc-300" : "text-zinc-700")}>
+          <AnimatedNumber value={size} decimals={1} suffix=" GB" duration={800} />
+        </span>
       </div>
       <div className={cn(
         "h-1.5 rounded-full overflow-hidden",
         isDark ? "bg-zinc-800" : "bg-zinc-200"
       )}>
         <div
-          className={cn("h-full rounded-full", color)}
-          style={{ width: `${percentage}%` }}
+          className={cn("h-full rounded-full transition-all duration-1000 ease-out", color)}
+          style={{ width: `${animatedWidth}%` }}
         />
       </div>
     </div>

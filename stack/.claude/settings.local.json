@@ -5,7 +5,8 @@
       "WebSearch",
       "Bash(pnpm add:*)",
       "Bash(pnpx shadcn@latest add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []

@@ -36,7 +36,6 @@ export function InfoTooltip({ content, className, visible = true, isDark = true 
           side="bottom"
           align="end"
           sideOffset={8}
-          hideArrow
           className={cn(
             "relative p-4 border min-w-[220px] max-w-[300px] rounded-none backdrop-blur-md",
             isDark ? "bg-[#0f0f0f]/80 border-zinc-200/10" : "bg-white/80 border-zinc-300"

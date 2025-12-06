@@ -5,7 +5,8 @@
       "WebSearch",
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(pnpm dlx:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "WebFetch(domain:number-flow.barvian.me)"
     ],
     "deny": [],
     "ask": []

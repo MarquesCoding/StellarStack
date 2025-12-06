@@ -11,6 +11,7 @@ export interface GridStorageData {
 export interface UseGridStorageOptions {
   key: string;
   defaultItems: GridItemConfig[];
+  defaultHiddenCards?: string[];
   // Future: userId for syncing with backend
   // userId?: string;
 }
@@ -21,10 +22,13 @@ const STORAGE_VERSION = 4;
  * Hook for persisting grid layout to localStorage.
  * Designed to be extended for backend sync with user accounts.
  */
-export function useGridStorage({ key, defaultItems }: UseGridStorageOptions) {
+export function useGridStorage({ key, defaultItems, defaultHiddenCards = [] }: UseGridStorageOptions) {
   // Use ref to avoid re-running effect when defaultItems reference changes
   const defaultItemsRef = useRef(defaultItems);
   defaultItemsRef.current = defaultItems;
+
+  const defaultHiddenCardsRef = useRef(defaultHiddenCards);
+  defaultHiddenCardsRef.current = defaultHiddenCards;
 
   // Start with defaults to avoid hydration mismatch
   const [items, setItems] = useState<GridItemConfig[]>(defaultItems);
@@ -34,7 +38,7 @@ export function useGridStorage({ key, defaultItems }: UseGridStorageOptions) {
   itemsRef.current = items;
 
   const [layouts, setLayouts] = useState<Layouts | undefined>(undefined);
-  const [hiddenCards, setHiddenCards] = useState<string[]>([]);
+  const [hiddenCards, setHiddenCards] = useState<string[]>(defaultHiddenCards);
 
   // Keep a ref to current hiddenCards for use in callbacks
   const hiddenCardsRef = useRef(hiddenCards);

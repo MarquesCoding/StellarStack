@@ -18,7 +18,7 @@ interface TrailPoint {
   age: number;
 }
 
-export function AnimatedBackground({
+export const AnimatedBackground = ({
   isDark = true,
   dotSize = 1,
   dotSpacing = 24,
@@ -26,11 +26,11 @@ export function AnimatedBackground({
   glowIntensity = 0.3,
   trailLength = 25,
   trailDecay = 0.96,
-}: AnimatedBackgroundProps) {
+}: AnimatedBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const trailRef = useRef<TrailPoint[]>([]);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const lastTrailTimeRef = useRef(0);
 
   const draw = useCallback(() => {
@@ -46,10 +46,8 @@ export function AnimatedBackground({
     const mouse = mouseRef.current;
     const trail = trailRef.current;
 
-    // Add current mouse position to trail (throttled)
     const now = Date.now();
     if (now - lastTrailTimeRef.current > 16 && mouse.x > -500) {
-      // Only add point if mouse has moved enough
       const lastPoint = trail[0];
       if (!lastPoint ||
           Math.abs(mouse.x - lastPoint.x) > 3 ||
@@ -62,45 +60,43 @@ export function AnimatedBackground({
       lastTrailTimeRef.current = now;
     }
 
-    // Age and decay trail points
     for (let i = 0; i < trail.length; i++) {
-      trail[i].age *= trailDecay;
+      const point = trail[i];
+      if (point) {
+        point.age *= trailDecay;
+      }
     }
 
-    // Remove faded trail points
-    while (trail.length > 0 && trail[trail.length - 1].age < 0.01) {
-      trail.pop();
+    while (trail.length > 0) {
+      const lastPoint = trail[trail.length - 1];
+      if (lastPoint && lastPoint.age < 0.01) {
+        trail.pop();
+      } else {
+        break;
+      }
     }
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Base dot color - more subtle
     const baseDotColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)";
     const glowColor = isDark ? [255, 255, 255] : [0, 0, 0];
 
-    // Draw dots
     for (let x = dotSpacing / 2; x < width; x += dotSpacing) {
       for (let y = dotSpacing / 2; y < height; y += dotSpacing) {
         let maxIntensity = 0;
 
-        // Check distance from all trail points
         for (let i = 0; i < trail.length; i++) {
           const point = trail[i];
+          if (!point) continue;
           const dx = x - point.x;
           const dy = y - point.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-
-          // Trail radius shrinks for older points (tapering effect)
           const trailRadius = glowRadius * (0.4 + 0.6 * point.age);
-
-          // Calculate glow intensity based on distance and age
           const glow = Math.max(0, 1 - distance / trailRadius);
           const intensity = glow * glowIntensity * point.age;
           maxIntensity = Math.max(maxIntensity, intensity);
         }
 
-        // Also check current mouse position
         const dx = x - mouse.x;
         const dy = y - mouse.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -108,14 +104,12 @@ export function AnimatedBackground({
         const currentIntensity = glow * glowIntensity;
         maxIntensity = Math.max(maxIntensity, currentIntensity);
 
-        // Set dot color with glow
         if (maxIntensity > 0.005) {
           const alpha = isDark
             ? 0.08 + maxIntensity * 0.35
             : 0.06 + maxIntensity * 0.25;
           ctx.fillStyle = `rgba(${glowColor[0]}, ${glowColor[1]}, ${glowColor[2]}, ${alpha})`;
 
-          // Slightly larger dots when glowing
           const currentDotSize = dotSize + maxIntensity * 1.2;
           ctx.beginPath();
           ctx.arc(x, y, currentDotSize, 0, Math.PI * 2);
@@ -136,7 +130,6 @@ export function AnimatedBackground({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas size
     const updateSize = () => {
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -151,7 +144,6 @@ export function AnimatedBackground({
     updateSize();
     window.addEventListener("resize", updateSize);
 
-    // Track mouse movement
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouseRef.current = {
@@ -167,7 +159,6 @@ export function AnimatedBackground({
     window.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseleave", handleMouseLeave);
 
-    // Start animation
     animationRef.current = requestAnimationFrame(draw);
 
     return () => {
@@ -187,4 +178,4 @@ export function AnimatedBackground({
       style={{ width: "100%", height: "100%" }}
     />
   );
-}
+};

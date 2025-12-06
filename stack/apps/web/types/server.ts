@@ -1,6 +1,23 @@
 // Container/Server status
 export type ContainerStatus = "running" | "stopped" | "starting" | "stopping";
 
+// Player info for game servers
+export interface Player {
+  id: string;
+  name: string;
+  joinedAt: number; // timestamp
+}
+
+// Game server specific info
+export interface GameServerInfo {
+  type: "minecraft" | "other";
+  version: string;
+  motd: string;
+  players: Player[];
+  maxPlayers: number;
+  tps?: number; // ticks per second (Minecraft)
+}
+
 // Resource usage with limits
 export interface ResourceUsage {
   current: number;      // Current usage (percentage or absolute value)
@@ -9,11 +26,19 @@ export interface ResourceUsage {
   history: number[];    // Historical data points for graphs
 }
 
+// Per-core CPU usage
+export interface CoreUsage {
+  id: number;
+  percentage: number;
+  frequency: number;
+}
+
 // CPU specific information
 export interface CpuInfo {
   usage: ResourceUsage;
   cores: number;
   frequency: number;    // Current frequency in GHz
+  coreUsage?: CoreUsage[]; // Per-core usage data
   model?: string;
   architecture?: string;
   baseFrequency?: number;
@@ -66,6 +91,20 @@ export interface NetworkConfig {
   ipAddress: string;
   port: number;
   protocol: string;
+  publicIp?: string;
+  privateIp?: string;
+  macAddress?: string;
+  openPorts?: PortInfo[];
+  interface?: string;
+  adapter?: string;
+  speed?: string;
+  gateway?: string;
+  dns?: string;
+}
+
+export interface PortInfo {
+  port: number;
+  protocol: string;
 }
 
 // System information
@@ -75,6 +114,23 @@ export interface SystemInfo {
   kernel: string;
   uptime: number;       // Uptime in seconds
   dockerVersion?: string;
+}
+
+// Node information for system info card
+export interface NodeData {
+  id: string;
+  name: string;
+  location: string;
+  region: string;
+  zone: string;
+  provider: string;
+}
+
+// Log entry for recent logs card
+export interface LogEntryData {
+  level: string;
+  message: string;
+  time: string;
 }
 
 // Server/Container instance
@@ -92,6 +148,19 @@ export interface ServerInstance {
   // Configuration
   networkConfig: NetworkConfig;
   system: SystemInfo;
+
+  // Node information
+  node?: NodeData;
+
+  // Recent logs
+  recentLogs?: LogEntryData[];
+
+  // Game server info (optional, for Minecraft etc.)
+  gameServer?: GameServerInfo;
+
+  // Container info
+  containerId?: string;
+  containerUptime?: number; // seconds since container started
 
   // Metadata
   createdAt?: Date;

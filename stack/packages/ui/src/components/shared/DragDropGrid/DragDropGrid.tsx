@@ -28,6 +28,7 @@ export interface GridItemConfig {
   size: GridSize;
   minSize?: GridSize; // minimum size this item can be resized to
   maxSize?: GridSize; // maximum size this item can be resized to
+  allowedSizes?: GridSize[]; // specific sizes this item can be (overrides min/max range)
 }
 
 // Size configurations - width (w) and height (h) in grid units
@@ -39,8 +40,8 @@ export const gridSizeConfig: Record<GridSize, { w: number; h: number }> = {
   xs: { w: 3, h: 3 }, // ~182px height
   sm: { w: 3, h: 4 }, // ~248px height (close to 250px)
   md: { w: 6, h: 5 }, // ~314px height
-  lg: { w: 6, h: 7 }, // ~446px height
-  xl: { w: 12, h: 7 }, // ~446px height
+  lg: { w: 6, h: 6 }, // ~380px height (2x xs height)
+  xl: { w: 12, h: 6 }, // ~380px height
   xxl: { w: 12, h: 10 }, // ~644px height, full width, for console
 };
 
@@ -215,20 +216,32 @@ export function DragDropGrid({
         const item = prevItems.find((i) => i.i === itemId);
         if (!item) return prevItems;
 
-        const currentIndex = SIZE_ORDER.indexOf(item.size);
-        const minIndex = item.minSize ? SIZE_ORDER.indexOf(item.minSize) : 0;
-        const maxIndex = item.maxSize ? SIZE_ORDER.indexOf(item.maxSize) : SIZE_ORDER.length - 1;
+        let nextSize: GridSize;
 
-        // Calculate next index within the allowed range
-        let nextIndex = currentIndex + 1;
+        // If allowedSizes is specified, cycle through those only
+        if (item.allowedSizes && item.allowedSizes.length > 0) {
+          const currentAllowedIndex = item.allowedSizes.indexOf(item.size);
+          const nextAllowedIndex = (currentAllowedIndex + 1) % item.allowedSizes.length;
+          nextSize = item.allowedSizes[nextAllowedIndex] as GridSize;
+        } else {
+          // Use min/max range
+          const currentIndex = SIZE_ORDER.indexOf(item.size);
+          const minIndex = item.minSize ? SIZE_ORDER.indexOf(item.minSize) : 0;
+          const maxIndex = item.maxSize ? SIZE_ORDER.indexOf(item.maxSize) : SIZE_ORDER.length - 1;
 
-        // If we exceed maxSize, wrap back to minSize
-        if (nextIndex > maxIndex) {
-          nextIndex = minIndex;
+          // Calculate next index within the allowed range
+          let nextIndex = currentIndex + 1;
+
+          // If we exceed maxSize, wrap back to minSize
+          if (nextIndex > maxIndex) {
+            nextIndex = minIndex;
+          }
+
+          nextSize = SIZE_ORDER[nextIndex] as GridSize;
         }
 
         const newItems = prevItems.map((i) =>
-          i.i === itemId ? { ...i, size: SIZE_ORDER[nextIndex] } : i
+          i.i === itemId ? { ...i, size: nextSize } : i
         );
 
         // Update layouts

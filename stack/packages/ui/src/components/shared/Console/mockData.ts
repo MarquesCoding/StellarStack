@@ -40,23 +40,27 @@ const DAEMON_MESSAGES: { message: string; level: LogLevel }[] = [
 
 let lineIdCounter = 0;
 
-export function generateRandomLine(): ConsoleLine {
-  const randomMessage = DAEMON_MESSAGES[Math.floor(Math.random() * DAEMON_MESSAGES.length)];
+const getRandomMessage = () => {
+  const index = Math.floor(Math.random() * DAEMON_MESSAGES.length);
+  return DAEMON_MESSAGES[index] ?? DAEMON_MESSAGES[0]!;
+};
+
+export const generateRandomLine = (): ConsoleLine => {
+  const randomMessage = getRandomMessage();
   return {
     id: `line-${++lineIdCounter}`,
     timestamp: Date.now(),
     level: randomMessage.level,
     message: `Stellar: ${randomMessage.message}`,
   };
-}
+};
 
-export function generateInitialLines(count: number = 20): ConsoleLine[] {
+export const generateInitialLines = (count: number = 20): ConsoleLine[] => {
   const lines: ConsoleLine[] = [];
   const now = Date.now();
 
   for (let i = 0; i < count; i++) {
-    const randomMessage = DAEMON_MESSAGES[Math.floor(Math.random() * DAEMON_MESSAGES.length)];
-    // Stagger timestamps going back in time
+    const randomMessage = getRandomMessage();
     const timestamp = now - (count - i) * (Math.random() * 5000 + 1000);
     lines.push({
       id: `line-${++lineIdCounter}`,
@@ -67,4 +71,4 @@ export function generateInitialLines(count: number = 20): ConsoleLine[] {
   }
 
   return lines;
-}
+};
