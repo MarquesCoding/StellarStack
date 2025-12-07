@@ -234,6 +234,7 @@ const Page = (): JSX.Element | null => {
             isEditing={isEditing}
             isDark={isDark}
             isDroppable={true}
+            removeConfirmLabels={labels.removeCard}
           >
             {!hiddenCards.includes("instance-name") && (
               <div key="instance-name" className="h-full">

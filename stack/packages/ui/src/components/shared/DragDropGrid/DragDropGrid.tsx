@@ -13,6 +13,14 @@ import {
 import { Responsive, WidthProvider, type Layout, type Layouts } from "react-grid-layout";
 import { cn } from "@workspace/ui/lib/utils";
 import { BsGripVertical, BsArrowsFullscreen, BsX } from "react-icons/bs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../dialog";
 
 // Import react-grid-layout styles
 import "react-grid-layout/css/styles.css";
@@ -51,6 +59,14 @@ const SIZE_ORDER: GridSize[] = ["xxs", "xxs-wide", "xs", "sm", "md", "lg", "xl",
 const BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
 const COLS = { lg: 12, md: 12, sm: 6, xs: 4, xxs: 2 };
 
+// Labels for remove confirmation dialog
+export interface RemoveConfirmLabels {
+  title: string;
+  description: string;
+  cancel: string;
+  confirm: string;
+}
+
 // Context for grid item interactions
 interface DragDropGridContextValue {
   cycleItemSize: (itemId: string) => void;
@@ -61,6 +77,7 @@ interface DragDropGridContextValue {
   removeItem: (itemId: string) => void;
   isEditing: boolean;
   isDark: boolean;
+  removeConfirmLabels?: RemoveConfirmLabels;
 }
 
 const DragDropGridContext = createContext<DragDropGridContextValue | null>(null);
@@ -137,6 +154,7 @@ export interface DragDropGridProps extends Omit<ComponentPropsWithoutRef<"div">,
   isDark?: boolean;
   isDroppable?: boolean;
   allItems?: GridItemConfig[]; // All available items for determining sizes on drop
+  removeConfirmLabels?: RemoveConfirmLabels;
 }
 
 export function DragDropGrid({
@@ -150,6 +168,7 @@ export function DragDropGrid({
   gap = 16,
   isEditing = false,
   savedLayouts,
+  removeConfirmLabels,
   isDark = true,
   isDroppable = false,
   allItems,
@@ -306,7 +325,7 @@ export function DragDropGrid({
   }, []);
 
   return (
-    <DragDropGridContext.Provider value={{ cycleItemSize, getItemSize, getItemMinSize, getItemMaxSize, canResize, removeItem, isEditing, isDark }}>
+    <DragDropGridContext.Provider value={{ cycleItemSize, getItemSize, getItemMinSize, getItemMaxSize, canResize, removeItem, isEditing, isDark, removeConfirmLabels }}>
       <div className={cn("drag-drop-grid", className)} {...props}>
         <ResponsiveGridLayout
           className="layout"
@@ -399,7 +418,8 @@ export function GridItem({
   showRemoveHandle = true,
   ...props
 }: GridItemProps) {
-  const { cycleItemSize, getItemSize, canResize, removeItem, isEditing, isDark } = useDragDropGrid();
+  const { cycleItemSize, getItemSize, canResize, removeItem, isEditing, isDark, removeConfirmLabels } = useDragDropGrid();
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const size = getItemSize(itemId);
   const isResizable = canResize(itemId);
 
@@ -409,11 +429,24 @@ export function GridItem({
     cycleItemSize(itemId);
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
+  const handleRemoveClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setShowRemoveConfirm(true);
+  };
+
+  const handleConfirmRemove = () => {
+    setShowRemoveConfirm(false);
     removeItem(itemId);
   };
+
+  const buttonBase = "px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors border bg-transparent";
+  const buttonColors = isDark
+    ? "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100"
+    : "border-zinc-300 text-zinc-600 hover:border-zinc-400 hover:text-zinc-800";
+  const buttonDestructive = isDark
+    ? "border-red-900/60 text-red-400/90 hover:border-red-700/80 hover:text-red-300"
+    : "border-red-300 text-red-600 hover:border-red-400 hover:text-red-700";
 
   return (
     <div
@@ -426,8 +459,8 @@ export function GridItem({
       {showDragHandle && isEditing && (
         <div
           className={cn(
-            "drag-handle absolute top-2 left-2 z-10 p-1.5 rounded cursor-grab active:cursor-grabbing",
-            isDark ? "bg-zinc-800/80" : "bg-zinc-200/80"
+            "drag-handle absolute top-2 left-2 z-10 p-1.5 cursor-grab active:cursor-grabbing border",
+            isDark ? "bg-zinc-800/80 border-zinc-700" : "bg-zinc-200/80 border-zinc-300"
           )}
           style={{ touchAction: "none" }}
           title="Drag to reorder"
@@ -439,21 +472,51 @@ export function GridItem({
       {/* Remove handle */}
       {showRemoveHandle && isEditing && (
         <button
-          onClick={handleRemove}
+          onClick={handleRemoveClick}
           onTouchEnd={(e) => {
             e.preventDefault();
-            handleRemove(e as unknown as React.MouseEvent);
+            handleRemoveClick(e as unknown as React.MouseEvent);
           }}
           className={cn(
-            "absolute top-2 left-10 z-20 p-1.5 rounded cursor-pointer",
-            isDark ? "bg-red-900/80 hover:bg-red-800" : "bg-red-100 hover:bg-red-200"
+            "absolute top-2 left-10 z-20 p-1.5 cursor-pointer border",
+            isDark ? "bg-zinc-800/80 border-red-900/60 hover:border-red-700/80 hover:bg-zinc-700" : "bg-zinc-200/80 border-red-300 hover:border-red-400 hover:bg-zinc-300"
           )}
           title="Remove card"
           type="button"
         >
-          <BsX className={cn("w-3.5 h-3.5 pointer-events-none", isDark ? "text-red-400" : "text-red-600")} />
+          <BsX className={cn("w-3.5 h-3.5 pointer-events-none", isDark ? "text-red-400/80" : "text-red-500")} />
         </button>
       )}
+
+      {/* Remove confirmation dialog */}
+      <Dialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+        <DialogContent isDark={isDark} showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle isDark={isDark}>
+              {removeConfirmLabels?.title ?? "Remove Card"}
+            </DialogTitle>
+            <DialogDescription isDark={isDark}>
+              {removeConfirmLabels?.description ?? "Are you sure you want to remove this card from the dashboard?"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              onClick={() => setShowRemoveConfirm(false)}
+              className={cn(buttonBase, buttonColors)}
+              type="button"
+            >
+              {removeConfirmLabels?.cancel ?? "Cancel"}
+            </button>
+            <button
+              onClick={handleConfirmRemove}
+              className={cn(buttonBase, buttonDestructive)}
+              type="button"
+            >
+              {removeConfirmLabels?.confirm ?? "Remove"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Resize handle */}
       {showResizeHandle && isResizable && isEditing && (
@@ -464,8 +527,8 @@ export function GridItem({
             handleResize(e as unknown as React.MouseEvent);
           }}
           className={cn(
-            "absolute top-2 right-2 z-20 p-1.5 rounded cursor-pointer",
-            isDark ? "bg-zinc-800/80 hover:bg-zinc-700" : "bg-zinc-200/80 hover:bg-zinc-300"
+            "absolute top-2 right-2 z-20 p-1.5 cursor-pointer border",
+            isDark ? "bg-zinc-800/80 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-700" : "bg-zinc-200/80 border-zinc-300 hover:border-zinc-400 hover:bg-zinc-300"
           )}
           title={`Size: ${size.toUpperCase()} (click to cycle)`}
           type="button"
@@ -477,8 +540,8 @@ export function GridItem({
       {/* Size indicator badge */}
       {isEditing && (
         <div className={cn(
-          "absolute bottom-2 right-2 z-10 px-2 py-0.5 rounded text-[10px] font-mono uppercase opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none",
-          isDark ? "bg-zinc-800/80 text-zinc-400" : "bg-zinc-200/80 text-zinc-600"
+          "absolute bottom-2 right-2 z-10 px-2 py-0.5 text-[10px] font-mono uppercase opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border",
+          isDark ? "bg-zinc-800/80 border-zinc-700 text-zinc-400" : "bg-zinc-200/80 border-zinc-300 text-zinc-600"
         )}>
           {size}
         </div>

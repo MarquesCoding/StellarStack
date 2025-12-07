@@ -16,6 +16,7 @@ export const NetworkInfoCard = ({ itemId, isDark, networkInfo, labels }: Network
   const { getItemSize } = useDragDropGrid();
   const size = getItemSize(itemId);
 
+  const isXxs = size === "xxs" || size === "xxs-wide";
   const isXs = size === "xs";
   const isCompact = size === "xs" || size === "sm";
   const isLarge = size === "lg" || size === "xl";
@@ -26,6 +27,15 @@ export const NetworkInfoCard = ({ itemId, isDark, networkInfo, labels }: Network
 
   const visiblePorts = isLarge ? networkInfo.openPorts : networkInfo.openPorts.slice(0, 3);
   const portsString = networkInfo.openPorts.slice(0, 3).map(p => p.port).join(", ");
+
+  if (isXxs) {
+    return (
+      <UsageCard isDark={isDark} className="h-full flex items-center justify-between px-6">
+        <span className={cn("text-xs font-medium uppercase", isDark ? "text-zinc-400" : "text-zinc-600")}>{labels.titleShort}</span>
+        <span className={cn("text-sm font-mono truncate ml-4", isDark ? "text-zinc-100" : "text-zinc-800")}>{networkInfo.publicIp}</span>
+      </UsageCard>
+    );
+  }
 
   return (
     <UsageCard isDark={isDark} className={cn("h-full", isXs && "p-4")}>

@@ -12,4 +12,5 @@ export type {
   GridSize,
   Layout,
   Layouts,
+  RemoveConfirmLabels,
 } from "./DragDropGrid";

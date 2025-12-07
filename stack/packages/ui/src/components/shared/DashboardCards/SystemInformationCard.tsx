@@ -16,6 +16,7 @@ export const SystemInformationCard = ({ itemId, isDark, nodeData, labels }: Syst
   const { getItemSize } = useDragDropGrid();
   const size = getItemSize(itemId);
 
+  const isXxs = size === "xxs" || size === "xxs-wide";
   const isXs = size === "xs";
   const isCompact = size === "xs" || size === "sm";
   const isLarge = size === "lg" || size === "xl";
@@ -25,6 +26,15 @@ export const SystemInformationCard = ({ itemId, isDark, nodeData, labels }: Syst
 
   const shortId = nodeData.id.slice(-4);
   const shortLocation = nodeData.location.split(" ")[0] + " " + (nodeData.location.split(" ")[1] || "");
+
+  if (isXxs) {
+    return (
+      <UsageCard isDark={isDark} className="h-full flex items-center justify-between px-6">
+        <span className={cn("text-xs font-medium uppercase", isDark ? "text-zinc-400" : "text-zinc-600")}>{labels.titleShort}</span>
+        <span className={cn("text-sm font-mono truncate ml-4", isDark ? "text-zinc-100" : "text-zinc-800")}>{nodeData.name}</span>
+      </UsageCard>
+    );
+  }
 
   return (
     <UsageCard isDark={isDark} className={cn("h-full", isXs && "p-4")}>

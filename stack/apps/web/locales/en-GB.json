@@ -58,7 +58,13 @@
     "allCardsOnDashboard": "All cards are on your dashboard.",
     "removeCardsHint": "Remove cards using the X button to add them here.",
     "copyright": "StellarStack",
-    "previewBanner": "You're viewing an early preview. Some features may be incomplete or change."
+    "previewBanner": "You're viewing an early preview. Some features may be incomplete or change.",
+    "removeCard": {
+      "title": "Remove Card",
+      "description": "Are you sure you want to remove this card from the dashboard?",
+      "cancel": "Cancel",
+      "confirm": "Remove"
+    }
   },
   "cards": {
     "cpu": {

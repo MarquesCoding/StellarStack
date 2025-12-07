@@ -12,6 +12,7 @@ import type {
   PlayersOnlineCardLabels,
   RecentLogsCardLabels,
 } from "@workspace/ui/components/shared/DashboardCards";
+import type { RemoveConfirmLabels } from "@workspace/ui/components/shared/DragDropGrid";
 
 interface DashboardLabels {
   editLayout: string;
@@ -73,6 +74,7 @@ interface UseLabelsReturn {
   containerUptime: ContainerUptimeCardLabels;
   playersOnline: PlayersOnlineCardLabels;
   recentLogs: RecentLogsCardLabels;
+  removeCard: RemoveConfirmLabels;
 }
 
 export const useLabels = (): UseLabelsReturn => {
@@ -180,6 +182,12 @@ export const useLabels = (): UseLabelsReturn => {
     },
     recentLogs: {
       title: t("cards.recentLogs.title"),
+    },
+    removeCard: {
+      title: t("dashboard.removeCard.title"),
+      description: t("dashboard.removeCard.description"),
+      cancel: t("dashboard.removeCard.cancel"),
+      confirm: t("dashboard.removeCard.confirm"),
     },
   };
 };

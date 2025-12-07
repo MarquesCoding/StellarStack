@@ -166,7 +166,7 @@ export function AppSidebar({ isDark = true }: AppSidebarProps) {
                     >
                       <Link href={item.href}>
                         <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
+                        <span className={isActive ? "uppercase opacity-100 hover:opacity-100" : "uppercase opacity-50 hover:opacity-100"}>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
