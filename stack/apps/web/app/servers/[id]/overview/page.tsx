@@ -79,7 +79,7 @@ const ServerOverviewPage = (): JSX.Element | null => {
   return (
     <ThemeContext.Provider value={{ isDark }}>
       <div className={cn(
-        "min-h-full transition-colors relative",
+        "min-h-svh transition-colors relative",
         isDark ? "bg-[#0b0b0a]" : "bg-[#f5f5f4]"
       )}>
         <AnimatedBackground isDark={isDark} />
@@ -97,11 +97,27 @@ const ServerOverviewPage = (): JSX.Element | null => {
 
         <div className="relative p-8">
           <FadeIn delay={0}>
-            <div className="mx-auto mb-6 flex items-center justify-between">
-              <SidebarTrigger className={cn(
-                "transition-all hover:scale-110 active:scale-95",
-                isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
-              )} />
+            <div className="max-w-7xl mx-auto mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className={cn(
+                  "transition-all hover:scale-110 active:scale-95",
+                  isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
+                )} />
+                <div>
+                  <h1 className={cn(
+                    "text-2xl font-light tracking-wider",
+                    isDark ? "text-zinc-100" : "text-zinc-800"
+                  )}>
+                    OVERVIEW
+                  </h1>
+                  <p className={cn(
+                    "text-sm mt-1",
+                    isDark ? "text-zinc-500" : "text-zinc-500"
+                  )}>
+                    Server {serverId}
+                  </p>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 {isEditing && (
                   <>

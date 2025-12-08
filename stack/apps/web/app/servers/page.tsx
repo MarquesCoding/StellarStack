@@ -144,7 +144,7 @@ const ServersPage = (): JSX.Element | null => {
                 key={server.id}
                 onClick={() => handleServerSelect(server.id)}
                 className={cn(
-                  "relative w-full p-6 border text-left transition-all hover:scale-[1.01] group",
+                  "relative w-full p-6 border text-left transition-all hover:scale-[1.01] group cursor-pointer",
                   isDark
                     ? "bg-gradient-to-b from-[#141414] via-[#0f0f0f] to-[#0a0a0a] border-zinc-200/10 shadow-lg shadow-black/20 hover:border-zinc-700"
                     : "bg-gradient-to-b from-white via-zinc-50 to-zinc-100 border-zinc-300 shadow-lg shadow-zinc-400/20 hover:border-zinc-400"
@@ -218,7 +218,7 @@ const ServersPage = (): JSX.Element | null => {
           {/* Add Server Button */}
           <button
             className={cn(
-              "relative w-full mt-4 p-6 border border-dashed text-center transition-all hover:scale-[1.01]",
+              "relative w-full mt-4 p-6 border border-dashed text-center transition-all hover:scale-[1.01] cursor-pointer",
               isDark
                 ? "border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300"
                 : "border-zinc-300 hover:border-zinc-400 text-zinc-400 hover:text-zinc-600"

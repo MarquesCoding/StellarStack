@@ -8,7 +8,8 @@ import { Button } from "@workspace/ui/components/button";
 import { AnimatedBackground } from "@workspace/ui/components/shared/AnimatedBackground";
 import { FloatingDots } from "@workspace/ui/components/shared/Animations";
 import { SidebarTrigger } from "@workspace/ui/components/sidebar";
-import { BsSun, BsMoon, BsExclamationTriangle } from "react-icons/bs";
+import { ConfirmationModal } from "@workspace/ui/components/shared/ConfirmationModal";
+import { BsSun, BsMoon, BsExclamationTriangle, BsCheckCircle } from "react-icons/bs";
 
 interface ServerSettings {
   name: string;
@@ -20,20 +21,26 @@ interface ServerSettings {
   oomDisabled: boolean;
 }
 
+const defaultSettings: ServerSettings = {
+  name: "US-WEST-NODE-1",
+  description: "Primary Minecraft server for US West region",
+  dockerImage: "ghcr.io/pterodactyl/yolks:java_17",
+  cpuLimit: 200,
+  memoryLimit: 4096,
+  diskLimit: 10240,
+  oomDisabled: false,
+};
+
 const SettingsPage = (): JSX.Element | null => {
   const params = useParams();
   const serverId = params.id as string;
   const { setTheme, resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = useState(false);
-  const [settings, setSettings] = useState<ServerSettings>({
-    name: "US-WEST-NODE-1",
-    description: "Primary Minecraft server for US West region",
-    dockerImage: "ghcr.io/pterodactyl/yolks:java_17",
-    cpuLimit: 200,
-    memoryLimit: 4096,
-    diskLimit: 10240,
-    oomDisabled: false,
-  });
+  const [settings, setSettings] = useState<ServerSettings>(defaultSettings);
+  const [originalSettings, setOriginalSettings] = useState<ServerSettings>(defaultSettings);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [reinstallModalOpen, setReinstallModalOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -45,6 +52,25 @@ const SettingsPage = (): JSX.Element | null => {
 
   const handleSettingChange = <K extends keyof ServerSettings>(key: K, value: ServerSettings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
+
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(originalSettings);
+
+  const handleSave = () => {
+    setOriginalSettings({ ...settings });
+    setSaveModalOpen(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleReset = () => {
+    setSettings({ ...originalSettings });
+  };
+
+  const handleReinstall = () => {
+    setReinstallModalOpen(false);
+    // Would trigger reinstall here
   };
 
   return (
@@ -56,7 +82,7 @@ const SettingsPage = (): JSX.Element | null => {
       <FloatingDots isDark={isDark} count={15} />
 
       <div className="relative p-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
@@ -80,17 +106,45 @@ const SettingsPage = (): JSX.Element | null => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {hasChanges && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  className={cn(
+                    "transition-all gap-2",
+                    isDark
+                      ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
+                      : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
+                  )}
+                >
+                  <span className="text-xs uppercase tracking-wider">Reset</span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setSaveModalOpen(true)}
+                disabled={!hasChanges}
                 className={cn(
                   "transition-all gap-2",
-                  isDark
-                    ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
-                    : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
+                  saved
+                    ? isDark
+                      ? "border-green-500/50 text-green-400"
+                      : "border-green-400 text-green-600"
+                    : isDark
+                      ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 disabled:opacity-40"
+                      : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 disabled:opacity-40"
                 )}
               >
-                <span className="text-xs uppercase tracking-wider">Save Changes</span>
+                {saved ? (
+                  <>
+                    <BsCheckCircle className="w-4 h-4" />
+                    <span className="text-xs uppercase tracking-wider">Saved</span>
+                  </>
+                ) : (
+                  <span className="text-xs uppercase tracking-wider">Save Changes</span>
+                )}
               </Button>
               <Button
                 variant="outline"
@@ -328,6 +382,7 @@ const SettingsPage = (): JSX.Element | null => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setReinstallModalOpen(true)}
                 className={cn(
                   "transition-all",
                   isDark
@@ -341,6 +396,29 @@ const SettingsPage = (): JSX.Element | null => {
           </div>
         </div>
       </div>
+
+      {/* Save Confirmation Modal */}
+      <ConfirmationModal
+        open={saveModalOpen}
+        onOpenChange={setSaveModalOpen}
+        title="Save Settings"
+        description="Are you sure you want to save these settings? Some changes may require a server restart to take effect."
+        onConfirm={handleSave}
+        confirmLabel="Save"
+        isDark={isDark}
+      />
+
+      {/* Reinstall Confirmation Modal */}
+      <ConfirmationModal
+        open={reinstallModalOpen}
+        onOpenChange={setReinstallModalOpen}
+        title="Reinstall Server"
+        description="Are you sure you want to reinstall this server? This will stop the server and reinstall it with its current configuration. All server files may be lost."
+        onConfirm={handleReinstall}
+        confirmLabel="Reinstall"
+        variant="danger"
+        isDark={isDark}
+      />
     </div>
   );
 };

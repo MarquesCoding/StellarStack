@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect, type JSX } from "react";
-import { useRouter } from "next/navigation";
 import { useTheme as useNextTheme } from "next-themes";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { AnimatedBackground } from "@workspace/ui/components/shared/AnimatedBackground";
 import { FloatingDots } from "@workspace/ui/components/shared/Animations";
 import { Switch } from "@workspace/ui/components/switch";
-import { BsSun, BsMoon, BsArrowLeft, BsKey, BsShieldCheck, BsTrash, BsPlus } from "react-icons/bs";
+import { SidebarTrigger } from "@workspace/ui/components/sidebar";
+import { ConfirmationModal } from "@workspace/ui/components/shared/ConfirmationModal";
+import { FormModal } from "@workspace/ui/components/shared/FormModal";
+import { Input } from "@workspace/ui/components/input";
+import { BsSun, BsMoon, BsKey, BsShieldCheck, BsTrash, BsPlus, BsCheckCircle } from "react-icons/bs";
 
 interface Passkey {
   id: string;
@@ -25,19 +28,22 @@ interface TwoFactorMethod {
 }
 
 const mockPasskeys: Passkey[] = [
-  { id: "pk-1", name: "MacBook Pro - Touch ID", createdAt: "2024-01-01", lastUsed: "Today" },
-  { id: "pk-2", name: "YubiKey 5", createdAt: "2024-01-05", lastUsed: "3 days ago" },
+  { id: "pk-1", name: "MacBook Pro - Touch ID", createdAt: "2025-01-01", lastUsed: "Today" },
+  { id: "pk-2", name: "YubiKey 5", createdAt: "2025-01-05", lastUsed: "3 days ago" },
 ];
 
+const defaultProfile = {
+  name: "John Doe",
+  email: "john@example.com",
+};
+
 const AccountPage = (): JSX.Element | null => {
-  const router = useRouter();
   const { setTheme, resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = useState(false);
 
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-  });
+  const [profile, setProfile] = useState(defaultProfile);
+  const [originalProfile, setOriginalProfile] = useState(defaultProfile);
+  const [saved, setSaved] = useState(false);
 
   const [twoFactor, setTwoFactor] = useState<TwoFactorMethod[]>([
     { id: "2fa-1", type: "authenticator", enabled: true },
@@ -45,6 +51,12 @@ const AccountPage = (): JSX.Element | null => {
   ]);
 
   const [passkeys, setPasskeys] = useState<Passkey[]>(mockPasskeys);
+
+  // Modal states
+  const [addPasskeyModalOpen, setAddPasskeyModalOpen] = useState(false);
+  const [deletePasskeyModalOpen, setDeletePasskeyModalOpen] = useState(false);
+  const [selectedPasskey, setSelectedPasskey] = useState<Passkey | null>(null);
+  const [newPasskeyName, setNewPasskeyName] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -54,14 +66,43 @@ const AccountPage = (): JSX.Element | null => {
 
   if (!mounted) return null;
 
+  const hasProfileChanges = JSON.stringify(profile) !== JSON.stringify(originalProfile);
+
+  const handleSaveProfile = () => {
+    setOriginalProfile({ ...profile });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   const toggleTwoFactor = (id: string) => {
     setTwoFactor(prev => prev.map(method =>
       method.id === id ? { ...method, enabled: !method.enabled } : method
     ));
   };
 
-  const removePasskey = (id: string) => {
-    setPasskeys(prev => prev.filter(pk => pk.id !== id));
+  const openDeletePasskeyModal = (passkey: Passkey) => {
+    setSelectedPasskey(passkey);
+    setDeletePasskeyModalOpen(true);
+  };
+
+  const handleAddPasskey = () => {
+    const dateStr = new Date().toISOString().split("T")[0] ?? new Date().toISOString().substring(0, 10);
+    const newPasskey: Passkey = {
+      id: `pk-${Date.now()}`,
+      name: newPasskeyName,
+      createdAt: dateStr,
+      lastUsed: "Never",
+    };
+    setPasskeys(prev => [...prev, newPasskey]);
+    setAddPasskeyModalOpen(false);
+    setNewPasskeyName("");
+  };
+
+  const handleDeletePasskey = () => {
+    if (!selectedPasskey) return;
+    setPasskeys(prev => prev.filter(pk => pk.id !== selectedPasskey.id));
+    setDeletePasskeyModalOpen(false);
+    setSelectedPasskey(null);
   };
 
   return (
@@ -73,23 +114,14 @@ const AccountPage = (): JSX.Element | null => {
       <FloatingDots isDark={isDark} count={15} />
 
       <div className="relative p-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.back()}
-                className={cn(
-                  "transition-all p-2",
-                  isDark
-                    ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
-                    : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
-                )}
-              >
-                <BsArrowLeft className="w-4 h-4" />
-              </Button>
+              <SidebarTrigger className={cn(
+                "transition-all hover:scale-110 active:scale-95",
+                isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
+              )} />
               <div>
                 <h1 className={cn(
                   "text-2xl font-light tracking-wider",
@@ -183,14 +215,27 @@ const AccountPage = (): JSX.Element | null => {
             <Button
               variant="outline"
               size="sm"
+              onClick={handleSaveProfile}
+              disabled={!hasProfileChanges}
               className={cn(
                 "mt-6 transition-all gap-2",
-                isDark
-                  ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
-                  : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
+                saved
+                  ? isDark
+                    ? "border-green-500/50 text-green-400"
+                    : "border-green-400 text-green-600"
+                  : isDark
+                    ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 disabled:opacity-40"
+                    : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 disabled:opacity-40"
               )}
             >
-              <span className="text-xs uppercase tracking-wider">Update Profile</span>
+              {saved ? (
+                <>
+                  <BsCheckCircle className="w-4 h-4" />
+                  <span className="text-xs uppercase tracking-wider">Saved</span>
+                </>
+              ) : (
+                <span className="text-xs uppercase tracking-wider">Update Profile</span>
+              )}
             </Button>
           </div>
 
@@ -219,6 +264,7 @@ const AccountPage = (): JSX.Element | null => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setAddPasskeyModalOpen(true)}
                 className={cn(
                   "transition-all gap-2",
                   isDark
@@ -264,7 +310,7 @@ const AccountPage = (): JSX.Element | null => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => removePasskey(passkey.id)}
+                    onClick={() => openDeletePasskeyModal(passkey)}
                     className={cn(
                       "transition-all p-2",
                       isDark
@@ -344,6 +390,58 @@ const AccountPage = (): JSX.Element | null => {
           </div>
         </div>
       </div>
+
+      {/* Add Passkey Modal */}
+      <FormModal
+        open={addPasskeyModalOpen}
+        onOpenChange={setAddPasskeyModalOpen}
+        title="Add Passkey"
+        description="Register a new passkey for passwordless authentication."
+        onSubmit={handleAddPasskey}
+        submitLabel="Add Passkey"
+        isDark={isDark}
+        isValid={newPasskeyName.trim().length >= 3}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn(
+              "text-xs uppercase tracking-wider mb-2 block",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Passkey Name
+            </label>
+            <Input
+              value={newPasskeyName}
+              onChange={(e) => setNewPasskeyName(e.target.value)}
+              placeholder="e.g., MacBook Pro - Touch ID"
+              className={cn(
+                "transition-all",
+                isDark
+                  ? "bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600"
+                  : "bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
+              )}
+            />
+            <p className={cn(
+              "text-xs mt-1",
+              isDark ? "text-zinc-500" : "text-zinc-500"
+            )}>
+              Enter a name to identify this passkey
+            </p>
+          </div>
+        </div>
+      </FormModal>
+
+      {/* Delete Passkey Modal */}
+      <ConfirmationModal
+        open={deletePasskeyModalOpen}
+        onOpenChange={setDeletePasskeyModalOpen}
+        title="Delete Passkey"
+        description={`Are you sure you want to delete "${selectedPasskey?.name}"? You will no longer be able to sign in using this passkey.`}
+        onConfirm={handleDeletePasskey}
+        confirmLabel="Delete"
+        variant="danger"
+        isDark={isDark}
+      />
     </div>
   );
 };

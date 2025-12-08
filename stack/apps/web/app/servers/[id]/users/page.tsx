@@ -5,9 +5,12 @@ import { useParams } from "next/navigation";
 import { useTheme as useNextTheme } from "next-themes";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
 import { AnimatedBackground } from "@workspace/ui/components/shared/AnimatedBackground";
 import { FloatingDots } from "@workspace/ui/components/shared/Animations";
 import { SidebarTrigger } from "@workspace/ui/components/sidebar";
+import { ConfirmationModal } from "@workspace/ui/components/shared/ConfirmationModal";
+import { FormModal } from "@workspace/ui/components/shared/FormModal";
 import { BsSun, BsMoon, BsPlus, BsTrash, BsPencil, BsPersonFill, BsShieldFill } from "react-icons/bs";
 
 interface ServerUser {
@@ -20,10 +23,18 @@ interface ServerUser {
 }
 
 const mockUsers: ServerUser[] = [
-  { id: "usr-1", username: "john_doe", email: "john@example.com", role: "owner", addedAt: "2024-01-01", lastAccess: "5 minutes ago" },
-  { id: "usr-2", username: "jane_smith", email: "jane@example.com", role: "admin", addedAt: "2024-01-05", lastAccess: "2 hours ago" },
-  { id: "usr-3", username: "bob_wilson", email: "bob@example.com", role: "moderator", addedAt: "2024-01-10", lastAccess: "1 day ago" },
-  { id: "usr-4", username: "alice_jones", email: "alice@example.com", role: "viewer", addedAt: "2024-01-12" },
+  { id: "usr-1", username: "john_doe", email: "john@example.com", role: "owner", addedAt: "2025-01-01", lastAccess: "5 minutes ago" },
+  { id: "usr-2", username: "jane_smith", email: "jane@example.com", role: "admin", addedAt: "2025-01-05", lastAccess: "2 hours ago" },
+  { id: "usr-3", username: "bob_wilson", email: "bob@example.com", role: "moderator", addedAt: "2025-01-10", lastAccess: "1 day ago" },
+  { id: "usr-4", username: "alice_jones", email: "alice@example.com", role: "viewer", addedAt: "2025-01-12" },
+];
+
+type UserRole = "owner" | "admin" | "moderator" | "viewer";
+
+const roleOptions: { value: UserRole; label: string }[] = [
+  { value: "admin", label: "Admin" },
+  { value: "moderator", label: "Moderator" },
+  { value: "viewer", label: "Viewer" },
 ];
 
 const UsersPage = (): JSX.Element | null => {
@@ -31,6 +42,17 @@ const UsersPage = (): JSX.Element | null => {
   const serverId = params.id as string;
   const { setTheme, resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = useState(false);
+  const [users, setUsers] = useState<ServerUser[]>(mockUsers);
+
+  // Modal states
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ServerUser | null>(null);
+
+  // Form states
+  const [formEmail, setFormEmail] = useState("");
+  const [formRole, setFormRole] = useState<UserRole>("viewer");
 
   useEffect(() => {
     setMounted(true);
@@ -39,6 +61,60 @@ const UsersPage = (): JSX.Element | null => {
   const isDark = mounted ? resolvedTheme === "dark" : true;
 
   if (!mounted) return null;
+
+  const resetForm = () => {
+    setFormEmail("");
+    setFormRole("viewer");
+  };
+
+  const openAddModal = () => {
+    resetForm();
+    setAddModalOpen(true);
+  };
+
+  const openEditModal = (user: ServerUser) => {
+    setSelectedUser(user);
+    setFormRole(user.role);
+    setEditModalOpen(true);
+  };
+
+  const openDeleteModal = (user: ServerUser) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    const username = formEmail.split("@")[0] || "new_user";
+    const dateStr = new Date().toISOString().split("T")[0] ?? new Date().toISOString().substring(0, 10);
+    const newUser: ServerUser = {
+      id: `usr-${Date.now()}`,
+      username,
+      email: formEmail,
+      role: formRole,
+      addedAt: dateStr,
+    };
+    setUsers(prev => [...prev, newUser]);
+    setAddModalOpen(false);
+    resetForm();
+  };
+
+  const handleEdit = () => {
+    if (!selectedUser) return;
+    setUsers(prev => prev.map(u =>
+      u.id === selectedUser.id ? { ...u, role: formRole } : u
+    ));
+    setEditModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleDelete = () => {
+    if (!selectedUser) return;
+    setUsers(prev => prev.filter(u => u.id !== selectedUser.id));
+    setDeleteModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const isEmailValid = formEmail.includes("@") && formEmail.includes(".");
 
   const getRoleColor = (role: ServerUser["role"]) => {
     switch (role) {
@@ -55,7 +131,7 @@ const UsersPage = (): JSX.Element | null => {
 
   return (
     <div className={cn(
-      "min-h-full transition-colors relative",
+      "min-h-svh transition-colors relative",
       isDark ? "bg-[#0b0b0a]" : "bg-[#f5f5f4]"
     )}>
       <AnimatedBackground isDark={isDark} />
@@ -81,7 +157,7 @@ const UsersPage = (): JSX.Element | null => {
                   "text-sm mt-1",
                   isDark ? "text-zinc-500" : "text-zinc-500"
                 )}>
-                  Server {serverId} • {mockUsers.length} users
+                  Server {serverId} • {users.length} users
                 </p>
               </div>
             </div>
@@ -89,6 +165,7 @@ const UsersPage = (): JSX.Element | null => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={openAddModal}
                 className={cn(
                   "transition-all gap-2",
                   isDark
@@ -117,7 +194,7 @@ const UsersPage = (): JSX.Element | null => {
 
           {/* Users List */}
           <div className="space-y-4">
-            {mockUsers.map((user) => (
+            {users.map((user) => (
               <div
                 key={user.id}
                 className={cn(
@@ -181,6 +258,7 @@ const UsersPage = (): JSX.Element | null => {
                       variant="outline"
                       size="sm"
                       disabled={user.role === "owner"}
+                      onClick={() => openEditModal(user)}
                       className={cn(
                         "transition-all p-2",
                         isDark
@@ -194,6 +272,7 @@ const UsersPage = (): JSX.Element | null => {
                       variant="outline"
                       size="sm"
                       disabled={user.role === "owner"}
+                      onClick={() => openDeleteModal(user)}
                       className={cn(
                         "transition-all p-2",
                         isDark
@@ -210,6 +289,126 @@ const UsersPage = (): JSX.Element | null => {
           </div>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      <FormModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        title="Add User"
+        description="Invite a user to access this server."
+        onSubmit={handleAdd}
+        submitLabel="Add User"
+        isDark={isDark}
+        isValid={isEmailValid}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn(
+              "text-xs uppercase tracking-wider mb-2 block",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Email Address
+            </label>
+            <Input
+              type="email"
+              value={formEmail}
+              onChange={(e) => setFormEmail(e.target.value)}
+              placeholder="user@example.com"
+              className={cn(
+                "transition-all",
+                isDark
+                  ? "bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600"
+                  : "bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
+              )}
+            />
+          </div>
+          <div>
+            <label className={cn(
+              "text-xs uppercase tracking-wider mb-2 block",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Role
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {roleOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFormRole(opt.value)}
+                  className={cn(
+                    "p-3 text-center border transition-all text-sm",
+                    formRole === opt.value
+                      ? isDark
+                        ? "border-zinc-500 bg-zinc-800 text-zinc-100"
+                        : "border-zinc-400 bg-zinc-100 text-zinc-900"
+                      : isDark
+                        ? "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                        : "border-zinc-300 text-zinc-600 hover:border-zinc-400"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </FormModal>
+
+      {/* Edit User Modal */}
+      <FormModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        title="Edit User"
+        description={`Change role for ${selectedUser?.username}.`}
+        onSubmit={handleEdit}
+        submitLabel="Save Changes"
+        isDark={isDark}
+        isValid={true}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={cn(
+              "text-xs uppercase tracking-wider mb-2 block",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Role
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {roleOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFormRole(opt.value)}
+                  className={cn(
+                    "p-3 text-center border transition-all text-sm",
+                    formRole === opt.value
+                      ? isDark
+                        ? "border-zinc-500 bg-zinc-800 text-zinc-100"
+                        : "border-zinc-400 bg-zinc-100 text-zinc-900"
+                      : isDark
+                        ? "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                        : "border-zinc-300 text-zinc-600 hover:border-zinc-400"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </FormModal>
+
+      {/* Delete User Modal */}
+      <ConfirmationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Remove User"
+        description={`Are you sure you want to remove ${selectedUser?.username} from this server? They will lose all access.`}
+        onConfirm={handleDelete}
+        confirmLabel="Remove"
+        variant="danger"
+        isDark={isDark}
+      />
     </div>
   );
 };

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, type JSX } from "react";
-import { useRouter } from "next/navigation";
 import { useTheme as useNextTheme } from "next-themes";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { AnimatedBackground } from "@workspace/ui/components/shared/AnimatedBackground";
 import { FloatingDots } from "@workspace/ui/components/shared/Animations";
-import { BsSun, BsMoon, BsArrowLeft, BsBell, BsCheck, BsCheckAll, BsExclamationTriangle, BsInfoCircle, BsServer, BsShieldExclamation } from "react-icons/bs";
+import { SidebarTrigger } from "@workspace/ui/components/sidebar";
+import { BsSun, BsMoon, BsBell, BsCheck, BsCheckAll, BsExclamationTriangle, BsInfoCircle, BsServer, BsShieldExclamation } from "react-icons/bs";
 
 type NotificationType = "info" | "warning" | "error" | "success" | "server" | "security";
 
@@ -82,7 +82,6 @@ const mockNotifications: Notification[] = [
 ];
 
 const NotificationsPage = (): JSX.Element | null => {
-  const router = useRouter();
   const { setTheme, resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
@@ -133,23 +132,14 @@ const NotificationsPage = (): JSX.Element | null => {
       <FloatingDots isDark={isDark} count={15} />
 
       <div className="relative p-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.back()}
-                className={cn(
-                  "transition-all p-2",
-                  isDark
-                    ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
-                    : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
-                )}
-              >
-                <BsArrowLeft className="w-4 h-4" />
-              </Button>
+              <SidebarTrigger className={cn(
+                "transition-all hover:scale-110 active:scale-95",
+                isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
+              )} />
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className={cn(

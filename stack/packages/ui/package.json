@@ -60,6 +60,8 @@
     "./components/shared/Animations": "./src/components/shared/Animations/index.ts",
     "./components/shared/Animations/*": "./src/components/shared/Animations/*.tsx",
     "./components/shared/PageTransition": "./src/components/shared/PageTransition/index.ts",
+    "./components/shared/ConfirmationModal": "./src/components/shared/ConfirmationModal/index.ts",
+    "./components/shared/FormModal": "./src/components/shared/FormModal/index.ts",
     "./hooks/*": "./src/hooks/*.ts"
   }
 }

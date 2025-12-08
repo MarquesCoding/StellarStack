@@ -8,7 +8,8 @@ import { Button } from "@workspace/ui/components/button";
 import { AnimatedBackground } from "@workspace/ui/components/shared/AnimatedBackground";
 import { FloatingDots } from "@workspace/ui/components/shared/Animations";
 import { SidebarTrigger } from "@workspace/ui/components/sidebar";
-import { BsSun, BsMoon, BsInfoCircle } from "react-icons/bs";
+import { ConfirmationModal } from "@workspace/ui/components/shared/ConfirmationModal";
+import { BsSun, BsMoon, BsInfoCircle, BsCheckCircle } from "react-icons/bs";
 
 interface StartupVariable {
   id: string;
@@ -74,6 +75,9 @@ const StartupPage = (): JSX.Element | null => {
   const { setTheme, resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = useState(false);
   const [variables, setVariables] = useState<StartupVariable[]>(mockVariables);
+  const [originalVariables, setOriginalVariables] = useState<StartupVariable[]>(mockVariables);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -87,6 +91,20 @@ const StartupPage = (): JSX.Element | null => {
     setVariables(prev => prev.map(v =>
       v.id === id ? { ...v, value } : v
     ));
+    setSaved(false);
+  };
+
+  const hasChanges = JSON.stringify(variables) !== JSON.stringify(originalVariables);
+
+  const handleSave = () => {
+    setOriginalVariables([...variables]);
+    setSaveModalOpen(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleReset = () => {
+    setVariables([...originalVariables]);
   };
 
   return (
@@ -122,17 +140,45 @@ const StartupPage = (): JSX.Element | null => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {hasChanges && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  className={cn(
+                    "transition-all gap-2",
+                    isDark
+                      ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
+                      : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
+                  )}
+                >
+                  <span className="text-xs uppercase tracking-wider">Reset</span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setSaveModalOpen(true)}
+                disabled={!hasChanges}
                 className={cn(
                   "transition-all gap-2",
-                  isDark
-                    ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500"
-                    : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400"
+                  saved
+                    ? isDark
+                      ? "border-green-500/50 text-green-400"
+                      : "border-green-400 text-green-600"
+                    : isDark
+                      ? "border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 disabled:opacity-40"
+                      : "border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 disabled:opacity-40"
                 )}
               >
-                <span className="text-xs uppercase tracking-wider">Save Changes</span>
+                {saved ? (
+                  <>
+                    <BsCheckCircle className="w-4 h-4" />
+                    <span className="text-xs uppercase tracking-wider">Saved</span>
+                  </>
+                ) : (
+                  <span className="text-xs uppercase tracking-wider">Save Changes</span>
+                )}
               </Button>
               <Button
                 variant="outline"
@@ -242,6 +288,17 @@ const StartupPage = (): JSX.Element | null => {
           </div>
         </div>
       </div>
+
+      {/* Save Confirmation Modal */}
+      <ConfirmationModal
+        open={saveModalOpen}
+        onOpenChange={setSaveModalOpen}
+        title="Save Changes"
+        description="Are you sure you want to save these startup parameter changes? The server will need to be restarted for changes to take effect."
+        onConfirm={handleSave}
+        confirmLabel="Save"
+        isDark={isDark}
+      />
     </div>
   );
 };

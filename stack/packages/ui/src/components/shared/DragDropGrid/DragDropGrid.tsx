@@ -176,6 +176,13 @@ export function DragDropGrid({
 }: DragDropGridProps) {
   const [items, setItems] = useState<GridItemConfig[]>(externalItems);
   const [layouts, setLayouts] = useState<Layouts>(() => savedLayouts || generateResponsiveLayouts(externalItems));
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Delay enabling transitions to prevent initial animation
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Use ref to always have latest callback without causing re-renders
   const onLayoutChangeRef = useRef(onLayoutChange);
@@ -326,7 +333,7 @@ export function DragDropGrid({
 
   return (
     <DragDropGridContext.Provider value={{ cycleItemSize, getItemSize, getItemMinSize, getItemMaxSize, canResize, removeItem, isEditing, isDark, removeConfirmLabels }}>
-      <div className={cn("drag-drop-grid", className)} {...props}>
+      <div className={cn("drag-drop-grid", !isMounted && "no-transition", className)} {...props}>
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}
@@ -354,6 +361,10 @@ export function DragDropGrid({
         }
         .drag-drop-grid .react-grid-item.cssTransforms {
           transition-property: transform, width, height;
+        }
+        .drag-drop-grid.no-transition .react-grid-item,
+        .drag-drop-grid.no-transition .react-grid-item.cssTransforms {
+          transition: none !important;
         }
         .drag-drop-grid .react-grid-item.react-draggable-dragging {
           transition: none;

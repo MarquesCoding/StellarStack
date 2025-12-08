@@ -207,9 +207,9 @@ export const AnimatedBackground = ({
 
     const updateSize = () => {
       const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
+      // Use window dimensions directly since canvas is fixed to viewport
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.scale(dpr, dpr);
@@ -218,6 +218,8 @@ export const AnimatedBackground = ({
 
     updateSize();
     window.addEventListener("resize", updateSize);
+    // Also update on orientation change for mobile devices
+    window.addEventListener("orientationchange", updateSize);
 
     const updatePosition = (clientX: number, clientY: number) => {
       const rect = canvas.getBoundingClientRect();
@@ -269,6 +271,7 @@ export const AnimatedBackground = ({
 
     return () => {
       window.removeEventListener("resize", updateSize);
+      window.removeEventListener("orientationchange", updateSize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchstart", handleTouchStart);
@@ -285,7 +288,7 @@ export const AnimatedBackground = ({
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none"
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: "100vw", height: "100vh" }}
     />
   );
 };

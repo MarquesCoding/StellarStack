@@ -49,7 +49,7 @@ const RUNTIME_MESSAGES: { message: string; level: LogLevel }[] = [
   { message: "World auto-save initiated", level: "default" },
   { message: "World auto-save completed", level: "info" },
   { message: "Backup started", level: "default" },
-  { message: "Backup completed: backup_2024-01-15_12-00.tar.gz", level: "info" },
+  { message: "Backup completed: backup_2025-01-15_12-00.tar.gz", level: "info" },
   { message: "Watchdog: Server responding normally", level: "default" },
   { message: "TPS: 20.0 (stable)", level: "default" },
   { message: "TPS: 19.8 (stable)", level: "default" },
