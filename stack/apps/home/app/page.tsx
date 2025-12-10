@@ -36,6 +36,16 @@ import {
   BsCheckCircle,
   BsTerminal,
   BsDatabase,
+  BsHddNetwork,
+  BsPeople,
+  BsBuilding,
+  BsPersonWorkspace,
+  BsCodeSlash,
+  BsImage,
+  BsShieldLock,
+  BsKey,
+  BsLock,
+  BsFileEarmarkLock,
 } from "react-icons/bs";
 import {
   SiNextdotjs,
@@ -110,6 +120,82 @@ const highlights = [
   "Custom Blueprints",
   "REST API & Webhooks",
   "White-label Ready",
+];
+
+// Target users from architecture
+const targetUsers = [
+  {
+    icon: BsBuilding,
+    title: "Hosting Providers",
+    description: "Run a game server hosting business with full control over infrastructure and customer management.",
+  },
+  {
+    icon: BsPeople,
+    title: "Gaming Communities",
+    description: "Self-host servers for your clan or guild members with role-based permissions and access control.",
+  },
+  {
+    icon: BsPersonWorkspace,
+    title: "Individual Gamers",
+    description: "Manage personal game servers across multiple machines from a single, unified dashboard.",
+  },
+  {
+    icon: BsCodeSlash,
+    title: "Developers",
+    description: "Test and deploy game servers during development with instant provisioning and real-time logs.",
+  },
+];
+
+// Architecture highlights
+const architectureFeatures = [
+  {
+    title: "Control Plane",
+    description: "Next.js frontend + Hono API + PostgreSQL + Redis running on your central server.",
+  },
+  {
+    title: "Multi-Node Support",
+    description: "Connect unlimited nodes (dedicated servers, VPS, home machines) via Rust daemons.",
+  },
+  {
+    title: "Real-time Events",
+    description: "Redis pub/sub for instant status updates, metrics streaming, and live console access.",
+  },
+  {
+    title: "Zero-Trust Security",
+    description: "mTLS between components, signed JWT tokens for console access, and comprehensive audit logging.",
+  },
+];
+
+// Security features
+const securityFeatures = [
+  {
+    icon: BsKey,
+    title: "Bcrypt Password Hashing",
+    description: "Industry-standard bcrypt algorithm with adaptive cost factor for secure password storage.",
+  },
+  {
+    icon: BsLock,
+    title: "AES-256-CBC Encryption",
+    description: "Military-grade encryption for sensitive data at rest, including API tokens and secrets.",
+  },
+  {
+    icon: BsShieldLock,
+    title: "HTTPS Everywhere",
+    description: "TLS 1.3 support out of the box with automatic certificate management via Caddy.",
+  },
+  {
+    icon: BsFileEarmarkLock,
+    title: "mTLS Communication",
+    description: "Mutual TLS authentication between control plane and daemon nodes for zero-trust security.",
+  },
+];
+
+// Security layers
+const securityLayers = [
+  { layer: "Edge", items: ["DDoS Protection", "WAF Rules", "Rate Limiting", "Bot Protection"] },
+  { layer: "Application", items: ["Authentication", "RBAC", "Input Validation", "CSRF Protection"] },
+  { layer: "Infrastructure", items: ["Network Segmentation", "Firewall Rules", "Encrypted Storage", "Audit Logging"] },
+  { layer: "Container", items: ["Resource Limits", "Network Isolation", "No Privileged Mode", "Seccomp Profiles"] },
 ];
 
 // Initial sample server data
@@ -347,6 +433,12 @@ const LandingPage = (): JSX.Element | null => {
                 isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
               )}>
                 Features
+              </a>
+              <a href="#security" className={cn(
+                "text-xs uppercase tracking-wider transition-colors",
+                isDark ? "text-zinc-400 hover:text-zinc-100" : "text-zinc-600 hover:text-zinc-900"
+              )}>
+                Security
               </a>
               <a href="#tech" className={cn(
                 "text-xs uppercase tracking-wider transition-colors",
@@ -723,9 +815,9 @@ const LandingPage = (): JSX.Element | null => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, i) => (
-              <AnimatedSection key={i} delay={i * 0.1}>
+              <AnimatedSection key={i} delay={i * 0.1} className="h-full">
               <div className={cn(
-                "relative p-8 border transition-all hover:scale-[1.02] group",
+                "relative p-8 border transition-all hover:scale-[1.02] group h-full flex flex-col",
                 isDark
                   ? "border-zinc-800 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/50"
                   : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-lg"
@@ -757,22 +849,379 @@ const LandingPage = (): JSX.Element | null => {
                 )} />
 
                 <feature.icon className={cn(
-                  "w-8 h-8 mb-6",
+                  "w-8 h-8 mb-6 flex-shrink-0",
                   isDark ? "text-zinc-400" : "text-zinc-600"
                 )} />
                 <h3 className={cn(
-                  "text-lg font-medium mb-3",
+                  "text-lg font-medium mb-3 flex-shrink-0",
                   isDark ? "text-zinc-100" : "text-zinc-900"
                 )}>
                   {feature.title}
                 </h3>
                 <p className={cn(
-                  "text-sm leading-relaxed",
+                  "text-sm leading-relaxed flex-grow",
                   isDark ? "text-zinc-400" : "text-zinc-600"
                 )}>
                   {feature.description}
                 </p>
               </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Who It's For Section */}
+      <section className="relative py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <h2 className={cn(
+              "text-3xl md:text-5xl font-extralight tracking-tight mb-4",
+              isDark ? "text-zinc-100" : "text-zinc-900"
+            )}>
+              Built For Everyone
+            </h2>
+            <p className={cn(
+              "text-lg max-w-2xl mx-auto",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Whether you&apos;re running a hosting business or managing servers for your gaming community.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {targetUsers.map((user, i) => (
+              <AnimatedSection key={i} delay={i * 0.1} className="h-full">
+                <div className={cn(
+                  "relative p-6 border transition-all hover:scale-[1.02] group h-full flex flex-col text-center",
+                  isDark
+                    ? "border-zinc-800 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/50"
+                    : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-lg"
+                )}>
+                  <div className={cn(
+                    "w-14 h-14 mx-auto mb-4 flex items-center justify-center border",
+                    isDark ? "border-zinc-700 bg-zinc-800/50" : "border-zinc-200 bg-zinc-50"
+                  )}>
+                    <user.icon className={cn(
+                      "w-7 h-7",
+                      isDark ? "text-zinc-400" : "text-zinc-600"
+                    )} />
+                  </div>
+                  <h3 className={cn(
+                    "text-base font-medium mb-2 flex-shrink-0",
+                    isDark ? "text-zinc-100" : "text-zinc-900"
+                  )}>
+                    {user.title}
+                  </h3>
+                  <p className={cn(
+                    "text-sm leading-relaxed flex-grow",
+                    isDark ? "text-zinc-400" : "text-zinc-600"
+                  )}>
+                    {user.description}
+                  </p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security Section */}
+      <section id="security" className={cn(
+        "relative py-32 px-6 border-y",
+        isDark ? "border-zinc-800 bg-zinc-900/30" : "border-zinc-200 bg-zinc-50"
+      )}>
+        <div className="max-w-7xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <h2 className={cn(
+              "text-3xl md:text-5xl font-extralight tracking-tight mb-4",
+              isDark ? "text-zinc-100" : "text-zinc-900"
+            )}>
+              Security First
+            </h2>
+            <p className={cn(
+              "text-lg max-w-2xl mx-auto",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Security is a first-class citizen. Your data and infrastructure are protected with industry-leading encryption and authentication.
+            </p>
+          </AnimatedSection>
+
+          {/* Security Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {securityFeatures.map((feature, i) => (
+              <AnimatedSection key={i} delay={i * 0.1} className="h-full">
+                <div className={cn(
+                  "relative p-6 border transition-all hover:scale-[1.02] group h-full flex flex-col",
+                  isDark
+                    ? "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"
+                    : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-lg"
+                )}>
+                  <feature.icon className={cn(
+                    "w-8 h-8 mb-4 flex-shrink-0",
+                    isDark ? "text-green-500" : "text-green-600"
+                  )} />
+                  <h3 className={cn(
+                    "text-base font-medium mb-2 flex-shrink-0",
+                    isDark ? "text-zinc-100" : "text-zinc-900"
+                  )}>
+                    {feature.title}
+                  </h3>
+                  <p className={cn(
+                    "text-sm leading-relaxed flex-grow",
+                    isDark ? "text-zinc-400" : "text-zinc-600"
+                  )}>
+                    {feature.description}
+                  </p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          {/* Security Layers */}
+          <AnimatedSection delay={0.3}>
+            <div className={cn(
+              "relative p-8 border",
+              isDark ? "border-zinc-700 bg-zinc-900/30" : "border-zinc-200 bg-white"
+            )}>
+              {/* Corner decorations */}
+              <div className={cn("absolute top-0 left-0 w-3 h-3 border-t border-l", isDark ? "border-zinc-500" : "border-zinc-400")} />
+              <div className={cn("absolute top-0 right-0 w-3 h-3 border-t border-r", isDark ? "border-zinc-500" : "border-zinc-400")} />
+              <div className={cn("absolute bottom-0 left-0 w-3 h-3 border-b border-l", isDark ? "border-zinc-500" : "border-zinc-400")} />
+              <div className={cn("absolute bottom-0 right-0 w-3 h-3 border-b border-r", isDark ? "border-zinc-500" : "border-zinc-400")} />
+
+              <h3 className={cn(
+                "text-center text-xs uppercase tracking-widest mb-8",
+                isDark ? "text-zinc-400" : "text-zinc-500"
+              )}>
+                Defense in Depth — 4 Security Layers
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {securityLayers.map((layer, i) => (
+                  <div key={i} className={cn(
+                    "p-4 border",
+                    isDark ? "border-zinc-700 bg-zinc-800/30" : "border-zinc-200 bg-zinc-50"
+                  )}>
+                    <div className={cn(
+                      "text-xs font-medium uppercase tracking-wider mb-3 pb-2 border-b",
+                      isDark ? "text-zinc-300 border-zinc-700" : "text-zinc-700 border-zinc-200"
+                    )}>
+                      Layer {i + 1}: {layer.layer}
+                    </div>
+                    <ul className="space-y-2">
+                      {layer.items.map((item, j) => (
+                        <li key={j} className="flex items-center gap-2">
+                          <div className={cn(
+                            "w-1.5 h-1.5",
+                            isDark ? "bg-green-500" : "bg-green-600"
+                          )} />
+                          <span className={cn(
+                            "text-xs",
+                            isDark ? "text-zinc-400" : "text-zinc-600"
+                          )}>
+                            {item}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* Architecture Section */}
+      <section className="relative py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Left: Text Content */}
+            <AnimatedSection>
+              <h2 className={cn(
+                "text-3xl md:text-4xl font-extralight tracking-tight mb-6",
+                isDark ? "text-zinc-100" : "text-zinc-900"
+              )}>
+                Modern Architecture
+              </h2>
+              <p className={cn(
+                "text-lg mb-8 leading-relaxed",
+                isDark ? "text-zinc-400" : "text-zinc-600"
+              )}>
+                StellarStack separates your control plane from your game server nodes. Deploy the panel on your central server, then connect unlimited nodes running our lightweight Rust daemon.
+              </p>
+              <div className="space-y-4">
+                {architectureFeatures.map((feature, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className={cn(
+                      "w-6 h-6 flex-shrink-0 flex items-center justify-center border mt-0.5",
+                      isDark ? "border-zinc-700 bg-zinc-800" : "border-zinc-200 bg-white"
+                    )}>
+                      <BsCheckCircle className={cn(
+                        "w-3.5 h-3.5",
+                        isDark ? "text-green-500" : "text-green-600"
+                      )} />
+                    </div>
+                    <div>
+                      <h4 className={cn(
+                        "text-sm font-medium mb-1",
+                        isDark ? "text-zinc-200" : "text-zinc-800"
+                      )}>
+                        {feature.title}
+                      </h4>
+                      <p className={cn(
+                        "text-sm",
+                        isDark ? "text-zinc-500" : "text-zinc-500"
+                      )}>
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </AnimatedSection>
+
+            {/* Right: Architecture Diagram */}
+            <AnimatedSection delay={0.2}>
+              <div className={cn(
+                "relative p-8 border font-mono text-xs",
+                isDark
+                  ? "border-zinc-700 bg-zinc-900/50"
+                  : "border-zinc-300 bg-white"
+              )}>
+                {/* Corner decorations */}
+                <div className={cn("absolute top-0 left-0 w-3 h-3 border-t border-l", isDark ? "border-zinc-500" : "border-zinc-400")} />
+                <div className={cn("absolute top-0 right-0 w-3 h-3 border-t border-r", isDark ? "border-zinc-500" : "border-zinc-400")} />
+                <div className={cn("absolute bottom-0 left-0 w-3 h-3 border-b border-l", isDark ? "border-zinc-500" : "border-zinc-400")} />
+                <div className={cn("absolute bottom-0 right-0 w-3 h-3 border-b border-r", isDark ? "border-zinc-500" : "border-zinc-400")} />
+
+                {/* Control Plane Box */}
+                <div className={cn(
+                  "border p-4 mb-6",
+                  isDark ? "border-zinc-700 bg-zinc-800/50" : "border-zinc-200 bg-zinc-50"
+                )}>
+                  <div className={cn(
+                    "text-center mb-3 text-[10px] uppercase tracking-widest",
+                    isDark ? "text-zinc-400" : "text-zinc-500"
+                  )}>
+                    Control Plane
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { name: "Next.js", port: ":3000" },
+                      { name: "Hono", port: ":4000" },
+                      { name: "PostgreSQL", port: ":5432" },
+                      { name: "Redis", port: ":6379" },
+                    ].map((item, i) => (
+                      <div key={i} className={cn(
+                        "text-center p-2 border",
+                        isDark ? "border-zinc-600 bg-zinc-900" : "border-zinc-300 bg-white"
+                      )}>
+                        <div className={isDark ? "text-zinc-300" : "text-zinc-700"}>{item.name}</div>
+                        <div className={isDark ? "text-zinc-600" : "text-zinc-400"}>{item.port}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Connection Line */}
+                <div className="flex justify-center mb-6">
+                  <div className={cn(
+                    "flex flex-col items-center gap-1",
+                    isDark ? "text-zinc-500" : "text-zinc-400"
+                  )}>
+                    <div className="text-[10px] uppercase tracking-wider">mTLS / WebSocket</div>
+                    <div className="h-6 border-l-2 border-dashed" style={{ borderColor: "currentColor" }} />
+                  </div>
+                </div>
+
+                {/* Nodes */}
+                <div className="grid grid-cols-3 gap-3">
+                  {["Node 1", "Node 2", "Node 3"].map((node, i) => (
+                    <div key={i} className={cn(
+                      "border p-3 text-center",
+                      isDark ? "border-zinc-700 bg-zinc-800/30" : "border-zinc-200 bg-zinc-50"
+                    )}>
+                      <BsServer className={cn(
+                        "w-4 h-4 mx-auto mb-2",
+                        isDark ? "text-zinc-400" : "text-zinc-500"
+                      )} />
+                      <div className={isDark ? "text-zinc-300" : "text-zinc-700"}>{node}</div>
+                      <div className={cn(
+                        "text-[10px] mt-1",
+                        isDark ? "text-zinc-600" : "text-zinc-400"
+                      )}>
+                        Rust Daemon
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Section Placeholder */}
+      <section id="gallery" className="relative py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <h2 className={cn(
+              "text-3xl md:text-5xl font-extralight tracking-tight mb-4",
+              isDark ? "text-zinc-100" : "text-zinc-900"
+            )}>
+              See It In Action
+            </h2>
+            <p className={cn(
+              "text-lg max-w-2xl mx-auto",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Screenshots and demos showcasing the StellarStack experience.
+            </p>
+          </AnimatedSection>
+
+          {/* Gallery Grid Placeholder */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <AnimatedSection key={item} delay={item * 0.05} className="h-full">
+                <div className={cn(
+                  "relative aspect-video border transition-all hover:scale-[1.02] group overflow-hidden",
+                  isDark
+                    ? "border-zinc-800 bg-zinc-900/30 hover:border-zinc-700"
+                    : "border-zinc-200 bg-zinc-50 hover:border-zinc-300"
+                )}>
+                  {/* Placeholder content */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <BsImage className={cn(
+                      "w-12 h-12 mb-3",
+                      isDark ? "text-zinc-700" : "text-zinc-300"
+                    )} />
+                    <span className={cn(
+                      "text-xs uppercase tracking-wider",
+                      isDark ? "text-zinc-600" : "text-zinc-400"
+                    )}>
+                      Coming Soon
+                    </span>
+                  </div>
+                  {/* Corner decorations */}
+                  <div className={cn(
+                    "absolute top-0 left-0 w-3 h-3 border-t border-l transition-colors",
+                    isDark ? "border-zinc-700 group-hover:border-zinc-500" : "border-zinc-300 group-hover:border-zinc-400"
+                  )} />
+                  <div className={cn(
+                    "absolute top-0 right-0 w-3 h-3 border-t border-r transition-colors",
+                    isDark ? "border-zinc-700 group-hover:border-zinc-500" : "border-zinc-300 group-hover:border-zinc-400"
+                  )} />
+                  <div className={cn(
+                    "absolute bottom-0 left-0 w-3 h-3 border-b border-l transition-colors",
+                    isDark ? "border-zinc-700 group-hover:border-zinc-500" : "border-zinc-300 group-hover:border-zinc-400"
+                  )} />
+                  <div className={cn(
+                    "absolute bottom-0 right-0 w-3 h-3 border-b border-r transition-colors",
+                    isDark ? "border-zinc-700 group-hover:border-zinc-500" : "border-zinc-300 group-hover:border-zinc-400"
+                  )} />
+                </div>
               </AnimatedSection>
             ))}
           </div>
