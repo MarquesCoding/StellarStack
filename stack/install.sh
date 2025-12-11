@@ -297,9 +297,14 @@ select_none() {
 
 # Main loop
 main() {
-    # Check if running in a terminal
+    # When piped, we need to reassign stdin to the terminal
     if [ ! -t 0 ]; then
-        echo "This script must be run interactively in a terminal."
+        exec < /dev/tty
+    fi
+
+    # Check if we have a terminal now
+    if [ ! -t 0 ]; then
+        echo "This script must be run in a terminal."
         exit 1
     fi
 
