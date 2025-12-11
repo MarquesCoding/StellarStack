@@ -4,20 +4,19 @@
 # https://github.com/MarquesCoding/StellarStack
 # This is a mock installer for demonstration purposes
 
-set -e
-
-# Colors
-RED='\033[0;31m'
+# Colors - Old school terminal green (Alien/Nostromo style)
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
-GRAY='\033[0;90m'
+BRIGHT_GREEN='\033[1;32m'
+DIM_GREEN='\033[2;32m'
 NC='\033[0m' # No Color
 BOLD='\033[1m'
 DIM='\033[2m'
+
+# Alias colors to green palette for retro terminal look
+PRIMARY="${BRIGHT_GREEN}"
+SECONDARY="${GREEN}"
+MUTED="${DIM_GREEN}"
+HIGHLIGHT="${BRIGHT_GREEN}${BOLD}"
 
 # Service states (0 = not selected, 1 = selected)
 declare -A services
@@ -31,6 +30,11 @@ services=(
     ["watchtower"]=1
     ["rust_daemon"]=0
 )
+
+# Domain configuration
+panel_domain=""
+api_domain=""
+node_domain=""
 
 # Service descriptions
 declare -A service_names
@@ -54,53 +58,52 @@ current_step="welcome"
 # Clear screen and show header
 clear_screen() {
     clear
-    echo -e "${CYAN}"
+    echo -e "${PRIMARY}"
     cat << 'EOF'
-   _____ _       _ _            _____ _             _
-  / ____| |     | | |          / ____| |           | |
- | (___ | |_ ___| | | __ _ _ _| (___ | |_ __ _  ___| | __
-  \___ \| __/ _ \ | |/ _` | '__\___ \| __/ _` |/ __| |/ /
-  ____) | ||  __/ | | (_| | |  ____) | || (_| | (__|   <
- |_____/ \__\___|_|_|\__,_|_| |_____/ \__\__,_|\___|_|\_\
+
+ ______     ______   ______     __         __         ______     ______     ______     ______   ______     ______     __  __
+/\  ___\   /\__  _\ /\  ___\   /\ \       /\ \       /\  __ \   /\  == \   /\  ___\   /\__  _\ /\  __ \   /\  ___\   /\ \/ /
+\ \___  \  \/_/\ \/ \ \  __\   \ \ \____  \ \ \____  \ \  __ \  \ \  __<   \ \___  \  \/_/\ \/ \ \  __ \  \ \ \____  \ \  _"-.
+ \/\_____\    \ \_\  \ \_____\  \ \_____\  \ \_____\  \ \_\ \_\  \ \_\ \_\  \/\_____\    \ \_\  \ \_\ \_\  \ \_____\  \ \_\ \_\
+  \/_____/     \/_/   \/_____/   \/_____/   \/_____/   \/_/\/_/   \/_/ /_/   \/_____/     \/_/   \/_/\/_/   \/_____/   \/_/\/_/
 
 EOF
     echo -e "${NC}"
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
-    echo -e "${GRAY}  Open Source Game Server Management Panel${NC}"
-    echo -e "${GRAY}  https://github.com/MarquesCoding/StellarStack${NC}"
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ════════════════════════════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${SECONDARY}  INTERFACE 2037 // WEYLAND-YUTANI CORP // GAME SERVER MANAGEMENT SYSTEM${NC}"
+    echo -e "${MUTED}  ════════════════════════════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
 }
 
 # Show welcome screen
 show_welcome() {
     clear_screen
-    echo -e "${WHITE}${BOLD}  Welcome to the StellarStack Installer${NC}"
+    echo -e "${PRIMARY}  > INITIALIZATION SEQUENCE${NC}"
     echo ""
-    echo -e "${GRAY}  This installer will help you set up StellarStack on your server.${NC}"
-    echo -e "${GRAY}  You'll be able to choose which components to install.${NC}"
+    echo -e "${SECONDARY}  This installer will help you set up StellarStack on your server.${NC}"
+    echo -e "${SECONDARY}  You'll be able to choose which components to install.${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${YELLOW}  System Requirements:${NC}"
-    echo -e "${GRAY}    • Ubuntu 20.04+ / Debian 11+${NC}"
-    echo -e "${GRAY}    • 2GB RAM minimum (4GB recommended)${NC}"
-    echo -e "${GRAY}    • 20GB disk space${NC}"
-    echo -e "${GRAY}    • Docker & Docker Compose${NC}"
+    echo -e "${PRIMARY}  SYSTEM REQUIREMENTS:${NC}"
+    echo -e "${SECONDARY}    > Ubuntu 20.04+ / Debian 11+${NC}"
+    echo -e "${SECONDARY}    > 2GB RAM minimum (4GB recommended)${NC}"
+    echo -e "${SECONDARY}    > 20GB disk space${NC}"
+    echo -e "${SECONDARY}    > Docker & Docker Compose${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${GREEN}  Press ${WHITE}[ENTER]${GREEN} to continue or ${WHITE}[Q]${GREEN} to quit${NC}"
+    echo -e "${SECONDARY}  Press ${PRIMARY}[ENTER]${SECONDARY} to continue or ${PRIMARY}[Q]${SECONDARY} to abort${NC}"
 }
 
 # Show service selection
 show_services() {
     clear_screen
-    echo -e "${WHITE}${BOLD}  Select Services to Install${NC}"
+    echo -e "${PRIMARY}  > MODULE SELECTION${NC}"
     echo ""
-    echo -e "${GRAY}  Use ${WHITE}↑/↓${GRAY} to navigate, ${WHITE}[SPACE]${GRAY} to toggle, ${WHITE}[ENTER]${GRAY} to confirm${NC}"
+    echo -e "${SECONDARY}  Use ${PRIMARY}↑/↓${SECONDARY} to navigate, ${PRIMARY}[SPACE]${SECONDARY} to toggle, ${PRIMARY}[ENTER]${SECONDARY} to confirm${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
 
     local i=0
@@ -109,22 +112,22 @@ show_services() {
         local selected="${services[$service]}"
 
         if [ $i -eq $current_selection ]; then
-            echo -ne "${CYAN}  ▶ ${NC}"
+            echo -ne "${PRIMARY}  > ${NC}"
         else
             echo -ne "    "
         fi
 
         if [ "$selected" -eq 1 ]; then
-            echo -e "${GREEN}[✓]${NC} ${WHITE}${name}${NC}"
+            echo -e "${PRIMARY}[■]${NC} ${PRIMARY}${name}${NC}"
         else
-            echo -e "${GRAY}[ ]${NC} ${GRAY}${name}${NC}"
+            echo -e "${MUTED}[ ]${NC} ${MUTED}${name}${NC}"
         fi
 
         ((i++))
     done
 
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
 
     # Show selected count
@@ -134,47 +137,91 @@ show_services() {
             ((count++))
         fi
     done
-    echo -e "${GRAY}  ${count} service(s) selected${NC}"
+    echo -e "${SECONDARY}  ${count} module(s) selected${NC}"
     echo ""
-    echo -e "${YELLOW}  [SPACE]${NC} Toggle  ${YELLOW}[ENTER]${NC} Continue  ${YELLOW}[A]${NC} Select All  ${YELLOW}[N]${NC} Select None"
+    echo -e "${SECONDARY}  ${PRIMARY}[SPACE]${SECONDARY} Toggle  ${PRIMARY}[ENTER]${SECONDARY} Continue  ${PRIMARY}[A]${SECONDARY} Select All  ${PRIMARY}[N]${SECONDARY} Select None${NC}"
 }
 
 # Show configuration screen
 show_configuration() {
     clear_screen
-    echo -e "${WHITE}${BOLD}  Configuration${NC}"
+    echo -e "${PRIMARY}  > CONFIGURATION SUMMARY${NC}"
     echo ""
-    echo -e "${GRAY}  The following services will be installed:${NC}"
+    echo -e "${SECONDARY}  The following modules will be installed:${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
 
     for service in "${service_order[@]}"; do
         if [ "${services[$service]}" -eq 1 ]; then
-            echo -e "  ${GREEN}✓${NC} ${WHITE}${service_names[$service]}${NC}"
+            echo -e "  ${PRIMARY}■${NC} ${PRIMARY}${service_names[$service]}${NC}"
         fi
     done
 
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${YELLOW}  Installation Directory:${NC} ${WHITE}/opt/stellarstack${NC}"
-    echo -e "${YELLOW}  Docker Network:${NC} ${WHITE}stellarstack${NC}"
-    echo -e "${YELLOW}  Default Port:${NC} ${WHITE}3000${NC}"
+    echo -e "${SECONDARY}  Installation Directory:${NC} ${PRIMARY}/opt/stellarstack${NC}"
+    echo -e "${SECONDARY}  Docker Network:${NC} ${PRIMARY}stellarstack${NC}"
+    echo -e "${SECONDARY}  Default Port:${NC} ${PRIMARY}3000${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${GREEN}  Press ${WHITE}[ENTER]${GREEN} to start installation or ${WHITE}[B]${GREEN} to go back${NC}"
+    echo -e "${SECONDARY}  Press ${PRIMARY}[ENTER]${SECONDARY} to continue or ${PRIMARY}[B]${SECONDARY} to go back${NC}"
+}
+
+# Show domain configuration screen
+show_domains() {
+    clear_screen
+    echo -e "${PRIMARY}  > NETWORK CONFIGURATION${NC}"
+    echo ""
+    echo -e "${SECONDARY}  Configure domain names for your services (used with Traefik).${NC}"
+    echo ""
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
+    echo ""
+
+    # Panel domain
+    echo -e "${SECONDARY}  Panel Domain ${MUTED}(e.g., panel.example.com)${NC}"
+    echo -ne "  ${PRIMARY}>${NC} "
+    read -r panel_domain </dev/tty
+    if [ -z "$panel_domain" ]; then
+        panel_domain="panel.localhost"
+    fi
+    echo ""
+
+    # API domain
+    echo -e "${SECONDARY}  API Domain ${MUTED}(e.g., api.example.com)${NC}"
+    echo -ne "  ${PRIMARY}>${NC} "
+    read -r api_domain </dev/tty
+    if [ -z "$api_domain" ]; then
+        api_domain="api.localhost"
+    fi
+    echo ""
+
+    # Node domain (only if rust_daemon is selected)
+    if [ "${services["rust_daemon"]}" -eq 1 ]; then
+        echo -e "${SECONDARY}  Node Domain ${MUTED}(e.g., node1.example.com)${NC}"
+        echo -ne "  ${PRIMARY}>${NC} "
+        read -r node_domain </dev/tty
+        if [ -z "$node_domain" ]; then
+            node_domain="node.localhost"
+        fi
+        echo ""
+    fi
+
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
+    echo ""
+    echo -e "${SECONDARY}  Press ${PRIMARY}[ENTER]${SECONDARY} to continue or ${PRIMARY}[B]${SECONDARY} to go back${NC}"
 }
 
 # Show installation progress (mock)
 show_installation() {
     clear_screen
-    echo -e "${WHITE}${BOLD}  Installing StellarStack${NC}"
+    echo -e "${PRIMARY}  > DEPLOYING MODULES${NC}"
     echo ""
-    echo -e "${GRAY}  Please wait while we set up your services...${NC}"
+    echo -e "${SECONDARY}  Please wait while we set up your services...${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
 
     local tasks=(
@@ -191,13 +238,13 @@ show_installation() {
     )
 
     for task in "${tasks[@]}"; do
-        echo -ne "  ${YELLOW}◯${NC} ${GRAY}${task}...${NC}"
+        echo -ne "  ${MUTED}[ ]${NC} ${MUTED}${task}...${NC}"
         sleep 0.5
-        echo -e "\r  ${GREEN}●${NC} ${WHITE}${task}${NC}    "
+        echo -e "\r  ${PRIMARY}[■]${NC} ${PRIMARY}${task}${NC}    "
     done
 
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
     sleep 0.5
 }
@@ -205,58 +252,66 @@ show_installation() {
 # Show completion screen
 show_complete() {
     clear_screen
-    echo -e "${GREEN}${BOLD}  Installation Complete!${NC}"
+    echo -e "${PRIMARY}  > DEPLOYMENT COMPLETE${NC}"
     echo ""
-    echo -e "${GRAY}  StellarStack has been successfully installed.${NC}"
+    echo -e "${SECONDARY}  StellarStack has been successfully installed.${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${WHITE}  Access your panel:${NC}"
+    echo -e "${PRIMARY}  ACCESS POINTS:${NC}"
     echo ""
-    echo -e "    ${CYAN}➜${NC}  Panel:     ${WHITE}http://localhost:3000${NC}"
-    echo -e "    ${CYAN}➜${NC}  API:       ${WHITE}http://localhost:3000/api${NC}"
-    if [ "${services["traefik"]}" -eq 1 ]; then
-        echo -e "    ${CYAN}➜${NC}  Traefik:   ${WHITE}http://localhost:8080${NC}"
+    if [ "${services["traefik"]}" -eq 1 ] && [ -n "$panel_domain" ]; then
+        echo -e "    ${PRIMARY}>${NC}  Panel:     ${PRIMARY}https://${panel_domain}${NC}"
+        echo -e "    ${PRIMARY}>${NC}  API:       ${PRIMARY}https://${api_domain}${NC}"
+        if [ "${services["rust_daemon"]}" -eq 1 ] && [ -n "$node_domain" ]; then
+            echo -e "    ${PRIMARY}>${NC}  Node:      ${PRIMARY}https://${node_domain}${NC}"
+        fi
+        echo -e "    ${PRIMARY}>${NC}  Traefik:   ${PRIMARY}http://localhost:8080${NC}"
+    else
+        echo -e "    ${PRIMARY}>${NC}  Panel:     ${PRIMARY}http://localhost:3000${NC}"
+        echo -e "    ${PRIMARY}>${NC}  API:       ${PRIMARY}http://localhost:3001${NC}"
     fi
     if [ "${services["grafana"]}" -eq 1 ]; then
-        echo -e "    ${CYAN}➜${NC}  Grafana:   ${WHITE}http://localhost:3001${NC}"
+        echo -e "    ${PRIMARY}>${NC}  Grafana:   ${PRIMARY}http://localhost:3002${NC}"
     fi
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${WHITE}  Default Credentials:${NC}"
+    echo -e "${PRIMARY}  DEFAULT CREDENTIALS:${NC}"
     echo ""
-    echo -e "    ${YELLOW}Email:${NC}    ${WHITE}admin@stellarstack.app${NC}"
-    echo -e "    ${YELLOW}Password:${NC} ${WHITE}changeme123${NC}"
+    echo -e "    ${SECONDARY}Email:${NC}    ${PRIMARY}admin@stellarstack.app${NC}"
+    echo -e "    ${SECONDARY}Password:${NC} ${PRIMARY}changeme123${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${WHITE}  Useful Commands:${NC}"
+    echo -e "${PRIMARY}  SYSTEM COMMANDS:${NC}"
     echo ""
-    echo -e "    ${GRAY}cd /opt/stellarstack${NC}"
-    echo -e "    ${GRAY}docker compose ps${NC}        ${DIM}# View running services${NC}"
-    echo -e "    ${GRAY}docker compose logs -f${NC}   ${DIM}# View logs${NC}"
-    echo -e "    ${GRAY}docker compose down${NC}      ${DIM}# Stop services${NC}"
-    echo -e "    ${GRAY}docker compose up -d${NC}     ${DIM}# Start services${NC}"
+    echo -e "    ${SECONDARY}cd /opt/stellarstack${NC}"
+    echo -e "    ${SECONDARY}docker compose ps${NC}        ${MUTED}# View running services${NC}"
+    echo -e "    ${SECONDARY}docker compose logs -f${NC}   ${MUTED}# View logs${NC}"
+    echo -e "    ${SECONDARY}docker compose down${NC}      ${MUTED}# Stop services${NC}"
+    echo -e "    ${SECONDARY}docker compose up -d${NC}     ${MUTED}# Start services${NC}"
     echo ""
-    echo -e "${DIM}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${MUTED}  ────────────────────────────────────────────────────────────${NC}"
     echo ""
-    echo -e "${YELLOW}  ⚠  Remember to change your password after first login!${NC}"
+    echo -e "${PRIMARY}  WARNING: Change your password after first login!${NC}"
     echo ""
-    echo -e "${GREEN}  Thank you for installing StellarStack!${NC}"
-    echo -e "${GRAY}  Documentation: https://docs.stellarstack.app${NC}"
-    echo -e "${GRAY}  Discord: https://discord.gg/stellarstack${NC}"
+    echo -e "${SECONDARY}  Thank you for installing StellarStack!${NC}"
+    echo -e "${MUTED}  Documentation: https://docs.stellarstack.app${NC}"
+    echo -e "${MUTED}  Discord: https://discord.gg/stellarstack${NC}"
     echo ""
 }
 
-# Read single keypress
+# Read single keypress from terminal
 read_key() {
     local key
-    IFS= read -rsn1 key 2>/dev/null >&2
+
+    # Read directly from terminal
+    IFS= read -rsn1 key </dev/tty
 
     # Handle escape sequences (arrow keys)
     if [[ $key == $'\x1b' ]]; then
-        read -rsn2 -t 0.1 key 2>/dev/null >&2
+        read -rsn2 -t 0.1 key </dev/tty
         case $key in
             '[A') echo "UP" ;;
             '[B') echo "DOWN" ;;
@@ -297,17 +352,6 @@ select_none() {
 
 # Main loop
 main() {
-    # When piped, we need to reassign stdin to the terminal
-    if [ ! -t 0 ]; then
-        exec < /dev/tty
-    fi
-
-    # Check if we have a terminal now
-    if [ ! -t 0 ]; then
-        echo "This script must be run in a terminal."
-        exit 1
-    fi
-
     # Hide cursor
     tput civis 2>/dev/null || true
 
@@ -329,13 +373,13 @@ main() {
                 key=$(read_key)
                 case $key in
                     "UP")
-                        ((current_selection--))
+                        current_selection=$((current_selection - 1))
                         if [ $current_selection -lt 0 ]; then
                             current_selection=$((${#service_order[@]} - 1))
                         fi
                         ;;
                     "DOWN")
-                        ((current_selection++))
+                        current_selection=$((current_selection + 1))
                         if [ $current_selection -ge ${#service_order[@]} ]; then
                             current_selection=0
                         fi
@@ -352,8 +396,28 @@ main() {
                 show_configuration
                 key=$(read_key)
                 case $key in
-                    "ENTER") current_step="install" ;;
+                    "ENTER")
+                        # If Traefik is selected, go to domain config, otherwise install
+                        if [ "${services["traefik"]}" -eq 1 ]; then
+                            current_step="domains"
+                        else
+                            current_step="install"
+                        fi
+                        ;;
                     "b"|"B") current_step="services" ;;
+                    "q"|"Q") exit 0 ;;
+                esac
+                ;;
+            "domains")
+                # Show cursor for text input
+                tput cnorm 2>/dev/null || true
+                show_domains
+                # Hide cursor again
+                tput civis 2>/dev/null || true
+                key=$(read_key)
+                case $key in
+                    "ENTER") current_step="install" ;;
+                    "b"|"B") current_step="config" ;;
                     "q"|"Q") exit 0 ;;
                 esac
                 ;;
