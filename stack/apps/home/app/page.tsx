@@ -872,7 +872,10 @@ const LandingPage = (): JSX.Element | null => {
       </section>
 
       {/* Who It's For Section */}
-      <section className="relative py-32 px-6">
+      <section className={cn(
+          "relative py-32 px-6 border-y",
+          isDark ? "border-zinc-800 bg-zinc-900/30" : "border-zinc-200 bg-zinc-50"
+      )}>
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
             <h2 className={cn(
@@ -923,113 +926,6 @@ const LandingPage = (): JSX.Element | null => {
               </AnimatedSection>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Security Section */}
-      <section id="security" className={cn(
-        "relative py-32 px-6 border-y",
-        isDark ? "border-zinc-800 bg-zinc-900/30" : "border-zinc-200 bg-zinc-50"
-      )}>
-        <div className="max-w-7xl mx-auto">
-          <AnimatedSection className="text-center mb-16">
-            <h2 className={cn(
-              "text-3xl md:text-5xl font-extralight tracking-tight mb-4",
-              isDark ? "text-zinc-100" : "text-zinc-900"
-            )}>
-              Security First
-            </h2>
-            <p className={cn(
-              "text-lg max-w-2xl mx-auto",
-              isDark ? "text-zinc-400" : "text-zinc-600"
-            )}>
-              Security is a first-class citizen. Your data and infrastructure are protected with industry-leading encryption and authentication.
-            </p>
-          </AnimatedSection>
-
-          {/* Security Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {securityFeatures.map((feature, i) => (
-              <AnimatedSection key={i} delay={i * 0.1} className="h-full">
-                <div className={cn(
-                  "relative p-6 border transition-all hover:scale-[1.02] group h-full flex flex-col",
-                  isDark
-                    ? "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"
-                    : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-lg"
-                )}>
-                  <feature.icon className={cn(
-                    "w-8 h-8 mb-4 flex-shrink-0",
-                    isDark ? "text-green-500" : "text-green-600"
-                  )} />
-                  <h3 className={cn(
-                    "text-base font-medium mb-2 flex-shrink-0",
-                    isDark ? "text-zinc-100" : "text-zinc-900"
-                  )}>
-                    {feature.title}
-                  </h3>
-                  <p className={cn(
-                    "text-sm leading-relaxed flex-grow",
-                    isDark ? "text-zinc-400" : "text-zinc-600"
-                  )}>
-                    {feature.description}
-                  </p>
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
-
-          {/* Security Layers */}
-          <AnimatedSection delay={0.3}>
-            <div className={cn(
-              "relative p-8 border",
-              isDark ? "border-zinc-700 bg-zinc-900/30" : "border-zinc-200 bg-white"
-            )}>
-              {/* Corner decorations */}
-              <div className={cn("absolute top-0 left-0 w-3 h-3 border-t border-l", isDark ? "border-zinc-500" : "border-zinc-400")} />
-              <div className={cn("absolute top-0 right-0 w-3 h-3 border-t border-r", isDark ? "border-zinc-500" : "border-zinc-400")} />
-              <div className={cn("absolute bottom-0 left-0 w-3 h-3 border-b border-l", isDark ? "border-zinc-500" : "border-zinc-400")} />
-              <div className={cn("absolute bottom-0 right-0 w-3 h-3 border-b border-r", isDark ? "border-zinc-500" : "border-zinc-400")} />
-
-              <h3 className={cn(
-                "text-center text-xs uppercase tracking-widest mb-8",
-                isDark ? "text-zinc-400" : "text-zinc-500"
-              )}>
-                Defense in Depth — 4 Security Layers
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {securityLayers.map((layer, i) => (
-                  <div key={i} className={cn(
-                    "p-4 border",
-                    isDark ? "border-zinc-700 bg-zinc-800/30" : "border-zinc-200 bg-zinc-50"
-                  )}>
-                    <div className={cn(
-                      "text-xs font-medium uppercase tracking-wider mb-3 pb-2 border-b",
-                      isDark ? "text-zinc-300 border-zinc-700" : "text-zinc-700 border-zinc-200"
-                    )}>
-                      Layer {i + 1}: {layer.layer}
-                    </div>
-                    <ul className="space-y-2">
-                      {layer.items.map((item, j) => (
-                        <li key={j} className="flex items-center gap-2">
-                          <div className={cn(
-                            "w-1.5 h-1.5",
-                            isDark ? "bg-green-500" : "bg-green-600"
-                          )} />
-                          <span className={cn(
-                            "text-xs",
-                            isDark ? "text-zinc-400" : "text-zinc-600"
-                          )}>
-                            {item}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </AnimatedSection>
         </div>
       </section>
 
